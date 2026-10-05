@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}My Listings - SECONDLIFE Seller{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-md-5">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{{ url_for('home') }}" class="text-decoration-none">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('auth.profile') }}" class="text-decoration-none">Profile</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">My Listings</li>
+                </ol>
+            </nav>
+            <h1 class="h3 fw-bold mb-0 text-dark">
+                <i class="bi bi-shop text-success me-2"></i>My Seller Listings
+            </h1>
+            <p class="text-muted small mb-0 mt-1">Manage, update pricing, restock, or unpublish your hardware listings in the marketplace.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('marketplace.my_sales') }}" class="btn btn-outline-primary btn-sm fw-semibold">
+                <i class="bi bi-cash-stack me-1"></i>View Sales
+            </a>
+            <a href="{{ url_for('components.add_component') }}" class="btn btn-success btn-sm fw-bold text-white shadow-sm">
+                <i class="bi bi-plus-circle me-1"></i>Sell a Component
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-4">
+            <div class="card border-0 shadow-sm p-3 bg-white rounded-3">
+                <div class="text-muted small mb-1"><i class="bi bi-box-seam me-1 text-primary"></i>Total Listings</div>
+                <div class="fs-4 fw-bold text-dark">{{ listings|length }}</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card border-0 shadow-sm p-3 bg-white rounded-3">
+                <div class="text-muted small mb-1"><i class="bi bi-check-circle me-1 text-success"></i>Active In-Stock</div>
+                <div class="fs-4 fw-bold text-success">{{ active_count }}</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card border-0 shadow-sm p-3 bg-white rounded-3">
+                <div class="text-muted small mb-1"><i class="bi bi-exclamation-triangle me-1 text-warning"></i>Out of Stock</div>
+                <div class="fs-4 fw-bold text-warning">{{ out_of_stock_count }}</div>
+            </div>
+        </div>
+    </div>
+
+    {% if listings %}
+    <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 16px;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small text-muted text-uppercase">
+                        <tr>
+                            <th class="ps-4 py-3">Component</th>
+                            <th class="py-3">Category</th>
+                            <th class="py-3">Condition</th>
+                            <th class="py-3">Price (₹)</th>
+                            <th class="py-3">Stock Units</th>
+                            <th class="py-3">Status</th>
+                            <th class="text-end pe-4 py-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for comp in listings %}
+                        <tr>
+                            <td class="ps-4 py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3 rounded-2 border p-1 bg-light d-flex align-items-center justify-content-center" style="width: 52px; height: 52px; flex-shrink: 0;">
+                                        <img src="{{ url_for('static', filename=get_component_image(comp)) }}" alt="{{ comp.name }}" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.src='{{ url_for('static', filename='images/components/default.jpg') }}';">
+                                    </div>
+                                    <div>
+                                        <a href="{{ url_for('components.component_detail', component_id=comp.id) }}" class="fw-bold text-dark text-decoration-none">
+                                            {{ comp.name }}
+                                        </a>
+                                        <div class="text-muted small">Listed on {{ comp.created_at.strftime('%b %d, %Y') }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-3">
+                                <span class="badge bg-light text-dark border">{{ comp.category }}</span>
+                            </td>
+                            <td class="py-3">
+                                <span class="badge bg-info-subtle text-info-emphasis">{{ comp.condition }}</span>
+                            </td>
+                            <td class="py-3">
+                                <form action="{{ url_for('components.quick_update_component', component_id=comp.id) }}" method="POST" class="d-flex align-items-center gap-1" style="max-width: 130px;">
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">₹</span>
+                                        <input type="number" step="1" min="0" name="price" value="{{ comp.price|int }}" class="form-control" style="width: 65px;">
+                                        <button type="submit" class="btn btn-outline-secondary" title="Save Price"><i class="bi bi-check-lg"></i></button>
+                                    </div>
+                                </form>
+                            </td>
+                            <td class="py-3">
+                                <form action="{{ url_for('components.quick_update_component', component_id=comp.id) }}" method="POST" class="d-flex align-items-center gap-1" style="max-width: 130px;">
+                                    <div class="input-group input-group-sm">
+                                        <input type="number" min="0" name="quantity" value="{{ comp.quantity }}" class="form-control" style="width: 60px;">
+                                        <button type="submit" class="btn btn-outline-secondary" title="Save Stock"><i class="bi bi-check-lg"></i></button>
+                                    </div>
+                                </form>
+                            </td>
+                            <td class="py-3">
+                                <span class="badge {% if comp.quantity > 0 and comp.status == 'Available' %}bg-success-subtle text-success border border-success-subtle{% elif comp.quantity <= 0 or comp.status == 'Out of Stock' %}bg-danger-subtle text-danger border border-danger-subtle{% else %}bg-secondary-subtle text-secondary border border-secondary-subtle{% endif %}">
+                                    {% if comp.quantity <= 0 or comp.status == 'Out of Stock' %}Out of Stock{% else %}{{ comp.status }}{% endif %}
+                                </span>
+                            </td>
+                            <td class="pe-4 py-3 text-end">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a href="{{ url_for('components.component_detail', component_id=comp.id) }}" class="btn btn-sm btn-outline-secondary" title="View Listing">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('components.edit_component', component_id=comp.id) }}" class="btn btn-sm btn-outline-primary" title="Edit Listing Details">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('components.delete_component', component_id=comp.id) }}" onsubmit="return confirm('Delete this listing from marketplace?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Unpublish / Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card border-0 shadow-sm py-5 text-center my-4" style="border-radius: 16px;">
+        <div class="card-body py-5">
+            <div class="display-1 text-muted mb-3">🏷️</div>
+            <h3 class="fw-bold text-dark mb-2">No Active Listings Yet</h3>
+            <p class="text-muted mb-4 mx-auto" style="max-width: 480px;">
+                You haven't listed any electronic components for sale yet. Turn your unused hardware into cash and help other builders!
+            </p>
+            <a href="{{ url_for('components.add_component') }}" class="btn btn-success btn-lg px-4 py-2 text-white fw-bold shadow-sm">
+                <i class="bi bi-plus-circle me-2"></i>Sell Your First Component
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

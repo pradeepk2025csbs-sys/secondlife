@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}My Sales - SECONDLIFE Seller{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-md-5">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{{ url_for('home') }}" class="text-decoration-none">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('auth.profile') }}" class="text-decoration-none">Profile</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">My Sales</li>
+                </ol>
+            </nav>
+            <h1 class="h3 fw-bold mb-0 text-dark">
+                <i class="bi bi-cash-stack text-success me-2"></i>My Hardware Sales
+            </h1>
+            <p class="text-muted small mb-0 mt-1">Track orders placed for your listed components, update shipping status, and view earnings.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('components.my_listings') }}" class="btn btn-outline-success btn-sm fw-semibold">
+                <i class="bi bi-shop me-1"></i>My Listings
+            </a>
+            <a href="{{ url_for('components.add_component') }}" class="btn btn-success btn-sm fw-bold text-white shadow-sm">
+                <i class="bi bi-plus-circle me-1"></i>Sell a Component
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary Statistics -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-4">
+            <div class="card border-0 shadow-sm p-3 bg-white rounded-3">
+                <div class="text-muted small mb-1"><i class="bi bi-currency-rupee me-1 text-success"></i>Total Sales Revenue</div>
+                <div class="fs-4 fw-bold text-success" style="font-family: 'Outfit', sans-serif;">{{ format_currency(total_sales_revenue) }}</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card border-0 shadow-sm p-3 bg-white rounded-3">
+                <div class="text-muted small mb-1"><i class="bi bi-wallet2 me-1 text-primary"></i>Net Seller Earnings</div>
+                <div class="fs-4 fw-bold text-primary" style="font-family: 'Outfit', sans-serif;">{{ format_currency(total_net_earnings) }}</div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card border-0 shadow-sm p-3 bg-white rounded-3">
+                <div class="text-muted small mb-1"><i class="bi bi-box2-heart me-1 text-info"></i>Items Sold</div>
+                <div class="fs-4 fw-bold text-dark">{{ total_units_sold }} units</div>
+            </div>
+        </div>
+    </div>
+
+    {% if sales_items %}
+    <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 16px;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small text-muted text-uppercase">
+                        <tr>
+                            <th class="ps-4 py-3">Order / Date</th>
+                            <th class="py-3">Component</th>
+                            <th class="py-3">Buyer Name</th>
+                            <th class="py-3 text-center">Qty</th>
+                            <th class="py-3 text-end">Sale Amount</th>
+                            <th class="py-3 text-end">Net Earnings</th>
+                            <th class="py-3">Payment</th>
+                            <th class="py-3">Fulfillment Status</th>
+                            <th class="text-end pe-4 py-3">Update Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in sales_items %}
+                        <tr>
+                            <td class="ps-4 py-3">
+                                <a href="{{ url_for('marketplace.order_detail', order_id=item.order_id) }}" class="fw-bold text-dark text-decoration-none">
+                                    #{{ item.order.order_number if item.order else item.order_id }}
+                                </a>
+                                <div class="text-muted small">
+                                    {{ item.order.created_at.strftime('%b %d, %Y') if item.order else 'Recent' }}
+                                </div>
+                            </td>
+                            <td class="py-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-2 rounded-2 border p-1 bg-light d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; flex-shrink: 0;">
+                                        <img src="{{ url_for('static', filename=get_component_image(item.component)) }}" alt="{{ item.component_name }}" style="max-width: 100%; max-height: 100%; object-fit: contain;" onerror="this.src='{{ url_for('static', filename='images/components/default.jpg') }}';">
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold text-dark">{{ item.component_name }}</div>
+                                        <div class="text-muted small">@ {{ format_currency(item.unit_price) }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-3">
+                                <span class="fw-semibold text-dark">{{ item.order.customer_name if item.order else 'Customer' }}</span>
+                                <div class="text-muted small">{{ item.order.city if item.order else '' }}</div>
+                            </td>
+                            <td class="py-3 text-center fw-bold">{{ item.quantity }}</td>
+                            <td class="py-3 text-end fw-bold text-dark" style="font-family: 'Outfit', sans-serif;">
+                                {{ format_currency(item.subtotal) }}
+                            </td>
+                            <td class="py-3 text-end fw-bold text-success" style="font-family: 'Outfit', sans-serif;">
+                                {{ format_currency(item.seller_earnings) }}
+                            </td>
+                            <td class="py-3">
+                                <span class="badge {% if item.order and item.order.payment_status == 'Paid' %}bg-success-subtle text-success border border-success-subtle{% else %}bg-warning-subtle text-warning border border-warning-subtle{% endif %}">
+                                    {{ item.order.payment_status if item.order else 'Pending' }}
+                                </span>
+                            </td>
+                            <td class="py-3">
+                                <span class="badge {% if item.status == 'Delivered' %}bg-success-subtle text-success border border-success-subtle{% elif item.status == 'Shipped' %}bg-info-subtle text-info border border-info-subtle{% elif item.status == 'Processing' %}bg-primary-subtle text-primary border border-primary-subtle{% elif item.status == 'Cancelled' %}bg-danger-subtle text-danger border border-danger-subtle{% else %}bg-secondary-subtle text-secondary border border-secondary-subtle{% endif %}">
+                                    {{ item.status }}
+                                </span>
+                            </td>
+                            <td class="pe-4 py-3 text-end">
+                                <form action="{{ url_for('marketplace.update_sales_item_status', item_id=item.id) }}" method="POST" class="d-inline-flex align-items-center gap-1">
+                                    <select name="status" class="form-select form-select-sm" style="width: 120px;" onchange="this.form.submit()">
+                                        <option value="Confirmed" {% if item.status == 'Confirmed' %}selected{% endif %}>Confirmed</option>
+                                        <option value="Processing" {% if item.status == 'Processing' %}selected{% endif %}>Processing</option>
+                                        <option value="Shipped" {% if item.status == 'Shipped' %}selected{% endif %}>Shipped</option>
+                                        <option value="Delivered" {% if item.status == 'Delivered' %}selected{% endif %}>Delivered</option>
+                                        <option value="Cancelled" {% if item.status == 'Cancelled' %}selected{% endif %}>Cancelled</option>
+                                    </select>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card border-0 shadow-sm py-5 text-center my-4" style="border-radius: 16px;">
+        <div class="card-body py-5">
+            <div class="display-1 text-muted mb-3">💰</div>
+            <h3 class="fw-bold text-dark mb-2">No Sales Recorded Yet</h3>
+            <p class="text-muted mb-4 mx-auto" style="max-width: 480px;">
+                You don't have any sales yet. Make sure your components have competitive pricing, clear condition descriptions, and real photos!
+            </p>
+            <a href="{{ url_for('components.my_listings') }}" class="btn btn-outline-success btn-lg px-4 py-2 fw-semibold">
+                <i class="bi bi-shop me-2"></i>Check My Listings
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

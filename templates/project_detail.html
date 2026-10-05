@@ -1,0 +1,372 @@
+{% extends "base.html" %}
+{% block title %}{{ project.title }} - Reuse Project{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb & Back -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <a href="{{ url_for('projects.project_list') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Back to Projects
+        </a>
+
+        {% if session.get('user_id') %}
+        <div class="d-flex gap-2">
+            {% if is_saved %}
+            <form method="POST" action="{{ url_for('projects.unsave_project', project_id=project.id) }}">
+                <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-bookmark-fill me-1"></i>Saved
+                </button>
+            </form>
+            {% else %}
+            <form method="POST" action="{{ url_for('projects.save_project', project_id=project.id) }}">
+                <button type="submit" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-bookmark me-1"></i>Save Project
+                </button>
+            </form>
+            {% endif %}
+
+            {% if is_completed %}
+            <span class="badge bg-success fs-6 d-flex align-items-center px-3 py-1">
+                <i class="bi bi-check2-all me-1"></i>Completed
+            </span>
+            {% elif match_result and match_result.feasibility_score >= 50 %}
+            <form method="POST" action="{{ url_for('projects.complete_project', project_id=project.id) }}"
+                  onsubmit="return confirm('Complete this project? This will allocate your matching components and track your diverted e-waste.');">
+                <button type="submit" class="btn btn-success btn-sm">
+                    <i class="bi bi-check2-circle me-1"></i>Complete Project
+                </button>
+            </form>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Project Info Column -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 18px; overflow: hidden;">
+                <div style="max-height: 400px; overflow: hidden; background-color: #0f172a;">
+                    <img src="{{ url_for('static', filename=get_project_image(project)) }}" class="card-img-top w-100" style="max-height: 400px; object-fit: cover;" alt="{{ project.title }}" onerror="this.src='{{ url_for('static', filename='images/projects/default.jpg') }}';">
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <span class="badge bg-light text-dark border">{{ project.category }}</span>
+                        <span class="badge {% if project.difficulty == 'Beginner' %}bg-success-subtle text-success-emphasis{% elif project.difficulty == 'Intermediate' %}bg-warning-subtle text-warning-emphasis{% else %}bg-danger-subtle text-danger-emphasis{% endif %}">
+                            {{ project.difficulty }}
+                        </span>
+                        <span class="badge bg-success-subtle text-success-emphasis">
+                            <i class="bi bi-leaf me-1"></i>{{ format_weight(project.estimated_waste_reduction) }} Diverted
+                        </span>
+                    </div>
+
+                    <h2 class="fw-bold mb-3">{{ project.title }}</h2>
+
+                    <div class="lead text-muted mb-4" style="font-size: 1.05rem; line-height: 1.7;">
+                        {{ project.description }}
+                    </div>
+
+                    <div class="row g-3 py-3 border-top border-bottom mb-4">
+                        <div class="col-6 col-sm-3 text-center border-end">
+                            <div class="text-muted small">Category</div>
+                            <div class="fw-bold">{{ project.category }}</div>
+                        </div>
+                        <div class="col-6 col-sm-3 text-center border-end">
+                            <div class="text-muted small">Difficulty</div>
+                            <div class="fw-bold">{{ project.difficulty }}</div>
+                        </div>
+                        <div class="col-6 col-sm-3 text-center border-end">
+                            <div class="text-muted small">Est. Cost</div>
+                            <div class="fw-bold">₹{{ project.estimated_cost|int }}</div>
+                        </div>
+                        <div class="col-6 col-sm-3 text-center">
+                            <div class="text-muted small">Waste Diverted</div>
+                            <div class="fw-bold text-success">{{ format_weight(project.estimated_waste_reduction) }}</div>
+                        </div>
+                    </div>
+
+                    <!-- ═══════ FUTURISTIC MATCHING PIPELINE ═══════ -->
+                    <div class="matching-pipeline-container mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-secondary border-opacity-25">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-success-subtle text-success px-2 py-1"><i class="bi bi-cpu-fill me-1"></i>PIPELINE</span>
+                                <span class="fw-bold text-white small text-uppercase letter-spacing">Hardware Compatibility Flow</span>
+                            </div>
+                            <span class="badge bg-dark text-muted border border-secondary border-opacity-50 small">
+                                <i class="bi bi-arrow-repeat text-success me-1"></i>Active Engine
+                            </span>
+                        </div>
+
+                        <div class="row g-2 g-md-3 align-items-center text-center">
+                            <!-- Node 1: User Components -->
+                            <div class="col-md-3">
+                                <div class="pipeline-node h-100 p-3">
+                                    <div class="text-uppercase small text-muted fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                                        User Components
+                                    </div>
+                                    <div class="my-2">
+                                        <i class="bi bi-cpu text-primary" style="font-size: 2.2rem;"></i>
+                                    </div>
+                                    {% if session.get('user_id') and match_result %}
+                                    <div class="fw-bold text-white fs-5">{{ match_result.total_satisfied }} <span class="fs-6 text-success fw-normal">Units</span></div>
+                                    <div class="text-muted small mt-1" style="font-size: 0.75rem;">
+                                        {{ match_result.matched|length }} matched in inventory
+                                    </div>
+                                    {% else %}
+                                    <div class="fw-bold text-white fs-6">User Stock</div>
+                                    <div class="text-muted small mt-1" style="font-size: 0.75rem;">
+                                        Log in to evaluate
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Animated Connector 1 -->
+                            <div class="col-md-1 d-none d-md-flex justify-content-center pipeline-arrow">
+                                <i class="bi bi-arrow-right"></i>
+                            </div>
+                            <div class="col-12 d-md-none text-center py-1 pipeline-arrow">
+                                <i class="bi bi-arrow-down"></i>
+                            </div>
+
+                            <!-- Node 2: Matching Engine -->
+                            <div class="col-md-4">
+                                <div class="pipeline-node h-100 p-3 border-success border-opacity-50" style="background: rgba(16, 185, 129, 0.08);">
+                                    <div class="text-uppercase small text-success fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                                        Matching Engine
+                                    </div>
+                                    <div class="my-2">
+                                        <i class="bi bi-gear-wide-connected text-success" style="font-size: 2.2rem;"></i>
+                                    </div>
+                                    {% if session.get('user_id') and match_result %}
+                                    <div class="fw-bold fs-4 text-gradient">{{ match_result.feasibility_score }}%</div>
+                                    <span class="badge bg-{{ feasibility_label[1] }}-subtle text-{{ feasibility_label[1] }}-emphasis px-2 py-1 mt-1 small">
+                                        {{ feasibility_label[0] }}
+                                    </span>
+                                    <div class="text-muted small mt-1" style="font-size: 0.75rem;">
+                                        {{ match_result.total_satisfied }} of {{ match_result.total_required }} parts satisfied
+                                    </div>
+                                    {% else %}
+                                    <div class="fw-bold text-white fs-6">Algorithmic Matcher</div>
+                                    <span class="badge bg-secondary-subtle text-secondary small px-2 py-1 mt-1">Ready</span>
+                                    <div class="text-muted small mt-1" style="font-size: 0.75rem;">
+                                        Awaiting user inventory
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Animated Connector 2 -->
+                            <div class="col-md-1 d-none d-md-flex justify-content-center pipeline-arrow">
+                                <i class="bi bi-arrow-right"></i>
+                            </div>
+                            <div class="col-12 d-md-none text-center py-1 pipeline-arrow">
+                                <i class="bi bi-arrow-down"></i>
+                            </div>
+
+                            <!-- Node 3: Project -->
+                            <div class="col-md-3">
+                                <div class="pipeline-node h-100 p-3">
+                                    <div class="text-uppercase small text-info fw-semibold mb-2" style="font-size: 0.72rem; letter-spacing: 0.5px;">
+                                        Target Project
+                                    </div>
+                                    <div class="my-2">
+                                        <i class="bi bi-box-seam text-info" style="font-size: 2.2rem;"></i>
+                                    </div>
+                                    <div class="fw-bold text-white small text-truncate" title="{{ project.title }}">{{ project.title }}</div>
+                                    <div class="text-success small fw-semibold mt-1" style="font-size: 0.75rem;">
+                                        <i class="bi bi-leaf me-1"></i>{{ format_weight(project.estimated_waste_reduction) }}
+                                    </div>
+                                    <div class="text-muted small" style="font-size: 0.75rem;">
+                                        {{ required|length }} parts needed
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Required Components Table -->
+                    <h4 class="fw-bold mb-3">
+                        <i class="bi bi-tools text-primary me-2"></i>Required Components
+                    </h4>
+                    <div class="table-responsive mb-4">
+                        <table class="table table-hover align-middle border">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Component</th>
+                                    <th>Category</th>
+                                    <th class="text-center">Required Qty</th>
+                                    {% if session.get('user_id') and match_result %}
+                                    <th class="text-center">Your Stock</th>
+                                    <th>Status</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for req in required %}
+                                <tr>
+                                    <td class="fw-semibold">{{ req.component_name }}</td>
+                                    <td><span class="badge bg-light text-dark border">{{ req.category }}</span></td>
+                                    <td class="text-center fw-bold">{{ req.required_quantity }}</td>
+                                    {% if session.get('user_id') and match_result %}
+                                    {% set matched_item = match_result.matched | selectattr('name', 'equalto', req.component_name) | first %}
+                                    {% set missing_item = match_result.missing | selectattr('name', 'equalto', req.component_name) | first %}
+                                    <td class="text-center">
+                                        {% if matched_item %}
+                                            <span class="text-success fw-bold">{{ matched_item.available }}</span>
+                                        {% elif missing_item %}
+                                            <span class="text-danger fw-bold">{{ missing_item.available }}</span>
+                                        {% else %}
+                                            <span class="text-muted">0</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if matched_item and matched_item.status == 'available' %}
+                                        <span class="badge bg-success-subtle text-success-emphasis">
+                                            <i class="bi bi-check-circle me-1"></i>Ready
+                                        </span>
+                                        {% elif matched_item and matched_item.status == 'partial' %}
+                                        <span class="badge bg-warning-subtle text-warning-emphasis">
+                                            <i class="bi bi-exclamation-circle me-1"></i>Partial
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-danger-subtle text-danger-emphasis">
+                                            <i class="bi bi-x-circle me-1"></i>Missing
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar / Matching Engine Panel -->
+        <div class="col-lg-4">
+            {% if session.get('user_id') and match_result %}
+            <!-- Real Feasibility Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-0 pt-4 pb-0">
+                    <h5 class="fw-bold mb-0">
+                        <i class="bi bi-cpu text-success me-2"></i>Feasibility Match
+                    </h5>
+                    <p class="text-muted small mb-0">Calculated from your component inventory</p>
+                </div>
+                <div class="card-body">
+                    <!-- Circular or Big Percentage -->
+                    <div class="text-center py-3">
+                        <div class="display-4 fw-bold {% if match_result.feasibility_score >= 80 %}text-success{% elif match_result.feasibility_score >= 50 %}text-warning{% elif match_result.feasibility_score > 0 %}text-danger{% else %}text-muted{% endif %}">
+                            {{ match_result.feasibility_score }}%
+                        </div>
+                        <span class="badge bg-{{ feasibility_label[1] }}-subtle text-{{ feasibility_label[1] }}-emphasis fs-6 px-3 py-1 mt-1">
+                            {{ feasibility_label[0] }}
+                        </span>
+                        <div class="progress mt-3" style="height: 10px;">
+                            <div class="progress-bar bg-{{ feasibility_label[1] }}" role="progressbar" style="width: {{ match_result.feasibility_score }}%"></div>
+                        </div>
+                        <div class="small text-muted mt-2">
+                            <strong>{{ match_result.total_satisfied }}</strong> of <strong>{{ match_result.total_required }}</strong> required units available in your inventory.
+                        </div>
+                    </div>
+
+                    <!-- Available Components -->
+                    <div class="mt-3">
+                        <h6 class="fw-bold small text-uppercase text-success">
+                            <i class="bi bi-check2-circle text-success me-1"></i>Available
+                        </h6>
+                        {% if match_result.matched %}
+                        <ul class="list-group list-group-flush mb-3">
+                            {% for m in match_result.matched %}
+                            <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center bg-transparent">
+                                <div>
+                                    <div class="fw-semibold small text-dark"><span class="text-success fw-bold me-1">✓</span> {{ m.name }}</div>
+                                    <span class="text-muted" style="font-size: 0.75rem;">Required: {{ m.required }}</span>
+                                </div>
+                                <span class="badge bg-success-subtle text-success-emphasis">Have: {{ m.available }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <p class="text-muted small">None available</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Missing Components -->
+                    <div class="mt-3">
+                        <h6 class="fw-bold small text-uppercase text-danger">
+                            <i class="bi bi-x-circle text-danger me-1"></i>Missing
+                        </h6>
+                        {% if match_result.missing %}
+                        <ul class="list-group list-group-flush mb-3">
+                            {% for mis in match_result.missing %}
+                            <li class="list-group-item px-0 py-2 d-flex justify-content-between align-items-center bg-transparent">
+                                <div>
+                                    <div class="fw-semibold small text-dark"><span class="text-danger fw-bold me-1">✗</span> {{ mis.name }}</div>
+                                    <span class="text-muted" style="font-size: 0.75rem;">Have: {{ mis.available }} of {{ mis.required }}</span>
+                                </div>
+                                <span class="badge bg-danger-subtle text-danger-emphasis">Need {{ mis.needed }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        {% else %}
+                        <div class="alert alert-success-subtle border-0 py-2 small mb-3">
+                            <i class="bi bi-stars me-1"></i>You have all components needed to build this project!
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Action buttons -->
+                    <div class="d-grid gap-2 mt-4 pt-2 border-top">
+                        {% if is_completed %}
+                        <button class="btn btn-outline-success w-100" disabled>
+                            <i class="bi bi-check2-circle me-1"></i>Project Already Completed
+                        </button>
+                        {% elif match_result.feasibility_score >= 50 %}
+                        <form method="POST" action="{{ url_for('projects.complete_project', project_id=project.id) }}"
+                              onsubmit="return confirm('Complete this project? This will allocate your matching components and track your diverted e-waste.');">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-check2-circle me-1"></i>Mark as Reused / Completed
+                            </button>
+                        </form>
+                        {% else %}
+                        <a href="{{ url_for('components.component_list') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-search me-1"></i>Find Missing Components
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <!-- Callout for guest or no-match users -->
+            <div class="card border-0 shadow-sm text-center p-4 mb-4">
+                <i class="bi bi-cpu text-primary" style="font-size: 3rem;"></i>
+                <h5 class="fw-bold mt-3">Check Feasibility</h5>
+                <p class="text-muted small">
+                    Log in and list your unused components to see real-time compatibility and missing parts for this project.
+                </p>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary">
+                    <i class="bi bi-box-arrow-in-right me-1"></i>Log In to Test
+                </a>
+            </div>
+            {% endif %}
+
+            <!-- Environmental Impact Card -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="bi bi-recycle text-success me-2 fs-4"></i>
+                        <h6 class="fw-bold mb-0">Sustainability Score</h6>
+                    </div>
+                    <p class="text-muted small">
+                        Completing this project keeps approximately <strong>{{ format_weight(project.estimated_waste_reduction) }}</strong> of toxic electronic waste, heavy metals, and plastics out of landfills.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

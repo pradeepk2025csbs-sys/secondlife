@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block title %}Order #{{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-md-5">
+    <!-- Breadcrumb & Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{{ url_for('home') }}" class="text-decoration-none">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('marketplace.my_orders') }}" class="text-decoration-none">My Orders</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">#{{ order.order_number }}</li>
+                </ol>
+            </nav>
+            <div class="d-flex align-items-center gap-3">
+                <h1 class="h3 fw-bold mb-0 text-dark">Order #{{ order.order_number }}</h1>
+                <span class="badge {% if order.status == 'Delivered' %}bg-success-subtle text-success border border-success-subtle{% elif order.status == 'Cancelled' %}bg-danger-subtle text-danger border border-danger-subtle{% elif order.status == 'Shipped' %}bg-info-subtle text-info border border-info-subtle{% else %}bg-primary-subtle text-primary border border-primary-subtle{% endif %} px-3 py-1 fs-6">
+                    <i class="bi bi-circle-fill me-1" style="font-size: 0.45rem;"></i>{{ order.status }}
+                </span>
+            </div>
+            <p class="text-muted small mb-0 mt-1">Placed on {{ order.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+        </div>
+
+        <a href="{{ url_for('marketplace.my_orders') }}" class="btn btn-outline-secondary btn-sm mt-2 mt-md-0">
+            <i class="bi bi-arrow-left me-1"></i>Back to My Orders
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Order Items List -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm overflow-hidden mb-4" style="border-radius: 16px;">
+                <div class="card-header bg-white py-3 px-4 border-bottom">
+                    <h5 class="fw-bold mb-0 text-dark">Purchased Hardware Products</h5>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light small text-muted text-uppercase">
+                            <tr>
+                                <th class="ps-4 py-3">Component</th>
+                                <th class="py-3 text-center">Quantity</th>
+                                <th class="py-3 text-end">Historical Price</th>
+                                <th class="pe-4 py-3 text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in order.items %}
+                            <tr>
+                                <td class="ps-4 py-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3 rounded-2 border p-1 bg-light d-flex align-items-center justify-content-center" style="width: 52px; height: 52px; flex-shrink: 0;">
+                                            <img src="{{ url_for('static', filename=get_component_image(item.component)) }}" alt="{{ item.component_name }}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-0 text-dark">{{ item.component_name }}</h6>
+                                            <div class="mt-1">
+                                                {% if item.component %}
+                                                <span class="badge bg-light text-muted border small">{{ item.component.category }}</span>
+                                                <span class="badge bg-success-subtle text-success small ms-1">{{ item.component.condition }}</span>
+                                                {% endif %}
+                                                <span class="badge bg-light text-dark border small ms-1"><i class="bi bi-person me-1"></i>Seller: {{ item.seller_name }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 text-center fw-bold">{{ item.quantity }}</td>
+                                <td class="py-3 text-end text-muted">{{ format_currency(item.unit_price) }}</td>
+                                <td class="pe-4 py-3 text-end fw-bold text-success fs-6" style="font-family: 'Outfit', sans-serif;">
+                                    {{ format_currency(item.subtotal) }}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="border-top bg-light">
+                            <tr>
+                                <td colspan="3" class="ps-4 py-3 fw-bold text-dark">Total Order Amount:</td>
+                                <td class="pe-4 py-3 text-end fw-bold text-success fs-5" style="font-family: 'Outfit', sans-serif;">
+                                    {{ format_currency(order.total_amount) }}
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Environmental Impact Card -->
+            <div class="card border-0 shadow-sm p-4 text-white" style="border-radius: 16px; background: linear-gradient(135deg, #059669 0%, #0d9488 100%);">
+                <div class="d-flex align-items-center">
+                    <div class="rounded-circle bg-white text-success d-flex align-items-center justify-content-center me-3 shadow-sm" style="width: 56px; height: 56px; font-size: 1.8rem; flex-shrink: 0;">
+                        🌱
+                    </div>
+                    <div>
+                        <h5 class="fw-bold mb-1">Hardware Given a Second Life</h5>
+                        <p class="mb-0 small opacity-90">
+                            By sourcing these reusable parts, you directly diverted functional electronics from the e-waste stream, saving energy and critical raw materials.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Information Summary -->
+        <div class="col-lg-4">
+            <!-- Delivery Info -->
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 16px;">
+                <div class="card-header bg-white py-3 px-4 border-bottom">
+                    <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-geo-alt-fill text-primary me-2"></i>Delivery Address</h6>
+                </div>
+                <div class="card-body p-4 text-muted small" style="line-height: 1.6;">
+                    <div class="fw-bold text-dark fs-6 mb-1">{{ order.customer_name }}</div>
+                    <div>{{ order.address }}</div>
+                    <div>{{ order.city }}, {{ order.state }} - {{ order.pincode }}</div>
+                    <div class="mt-2 pt-2 border-top">
+                        <i class="bi bi-telephone me-1"></i>Phone: <strong>{{ order.phone }}</strong><br>
+                        <i class="bi bi-envelope me-1"></i>Email: {{ order.email or 'N/A' }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment & Summary Info -->
+            <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+                <div class="card-header bg-white py-3 px-4 border-bottom">
+                    <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-receipt text-success me-2"></i>Payment & Charges</h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span class="text-muted">Payment Method</span>
+                        <strong class="text-dark">{{ order.payment_method }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span class="text-muted">Payment Status</span>
+                        <span class="badge {% if order.payment_status == 'Paid' %}bg-success-subtle text-success border border-success-subtle{% elif order.payment_status == 'Pending' %}bg-warning-subtle text-warning border border-warning-subtle{% elif order.payment_status == 'Failed' %}bg-danger-subtle text-danger border border-danger-subtle{% else %}bg-secondary-subtle text-secondary border border-secondary-subtle{% endif %}">
+                            {{ order.payment_status or 'Pending' }}
+                        </span>
+                    </div>
+                    {% if order.razorpay_payment_id %}
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span class="text-muted">Payment Reference</span>
+                        <code class="text-dark" style="font-size: 0.78rem;">{{ order.razorpay_payment_id }}</code>
+                    </div>
+                    {% endif %}
+                    {% if order.razorpay_order_id %}
+                    <div class="d-flex justify-content-between mb-2 small">
+                        <span class="text-muted">Gateway Order ID</span>
+                        <code class="text-muted" style="font-size: 0.78rem;">{{ order.razorpay_order_id }}</code>
+                    </div>
+                    {% endif %}
+                    <div class="d-flex justify-content-between mb-3 pb-3 border-bottom small">
+                        <span class="text-muted">Delivery Charges</span>
+                        <span class="text-success fw-bold">FREE (Demo)</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <span class="fw-bold text-dark">Total Amount:</span>
+                        <span class="fs-4 fw-bold text-success" style="font-family: 'Outfit', sans-serif;">{{ format_currency(order.total_amount) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+{% block title %}Edit Component - {{ component.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center mb-3">
+                <a href="{{ url_for('components.component_detail', component_id=component.id) }}" class="btn btn-outline-secondary btn-sm me-3">
+                    <i class="bi bi-arrow-left me-1"></i>Back
+                </a>
+                <h2 class="fw-bold mb-0">
+                    <i class="bi bi-pencil-square text-primary me-2"></i>Edit Component
+                </h2>
+            </div>
+            <p class="text-muted mb-4">
+                Update availability, quantities, condition, or specifications for this component.
+            </p>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4 p-md-5">
+                    <form method="POST" action="{{ url_for('components.edit_component', component_id=component.id) }}" enctype="multipart/form-data">
+                        <!-- Component Name -->
+                        <div class="mb-3">
+                            <label for="name" class="form-label fw-semibold">
+                                Component Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="name" name="name"
+                                   value="{{ component.name }}" required>
+                        </div>
+
+                        <!-- Category & Status -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="category" class="form-label fw-semibold">Category <span class="text-danger">*</span></label>
+                                <select class="form-select" id="category" name="category" required>
+                                    {% for cat in categories %}
+                                    <option value="{{ cat }}" {% if component.category == cat %}selected{% endif %}>{{ cat }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="status" class="form-label fw-semibold">Availability Status</label>
+                                <select class="form-select" id="status" name="status">
+                                    {% for st in statuses %}
+                                    <option value="{{ st }}" {% if component.status == st %}selected{% endif %}>{{ st }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Condition, Quantity, Price & Weight -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-3">
+                                <label for="condition" class="form-label fw-semibold">Condition</label>
+                                <select class="form-select" id="condition" name="condition">
+                                    {% for cond in conditions %}
+                                    <option value="{{ cond }}" {% if component.condition == cond %}selected{% endif %}>{{ cond }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="quantity" class="form-label fw-semibold">Quantity <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" id="quantity" name="quantity"
+                                       min="0" value="{{ component.quantity }}" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="price" class="form-label fw-semibold">Price (₹) <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text fw-bold">₹</span>
+                                    <input type="number" step="1" min="0" class="form-control" id="price" name="price"
+                                           value="{{ component.price or 0 }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="estimated_weight" class="form-label fw-semibold">Weight (g)</label>
+                                <div class="input-group">
+                                    <input type="number" step="0.1" class="form-control" id="estimated_weight" name="estimated_weight"
+                                           value="{{ component.estimated_weight or 0 }}">
+                                    <span class="input-group-text">g</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label fw-semibold">Description / Notes</label>
+                            <textarea class="form-control" id="description" name="description" rows="3">{{ component.description or '' }}</textarea>
+                        </div>
+
+                        <!-- Image Preview & Replacement -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Component Photo</label>
+                            
+                            <div class="mb-3 p-3 bg-light rounded-3 border d-flex align-items-center gap-3">
+                                <div style="width: 72px; height: 72px; border-radius: 10px; background: #ffffff; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; padding: 4px;">
+                                    <img src="{{ url_for('static', filename=get_component_image(component)) }}" alt="{{ component.name }}" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                                </div>
+                                <div>
+                                    <div class="fw-semibold small">Current Visual Asset</div>
+                                    <div class="text-muted small">
+                                        {% if component.image %}Custom uploaded image{% else %}Smart hardware visual match{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="upload-dropzone mb-2" id="uploadDropzone" onclick="document.getElementById('image').click();">
+                                <i class="bi bi-cloud-arrow-up upload-dropzone-icon d-block"></i>
+                                <div class="fw-semibold text-dark mb-1">Click to replace photo or drag and drop new file</div>
+                                <div class="text-muted small">Supported: PNG, JPG, JPEG, WEBP (Max 16MB)</div>
+                                <input class="d-none" type="file" id="image" name="image" accept=".png,.jpg,.jpeg,.webp">
+                            </div>
+
+                            <!-- Live Instant Preview Container -->
+                            <div id="imagePreviewContainer" class="d-none mt-2">
+                                <div class="image-preview-card">
+                                    <img id="imagePreview" src="" alt="Selected Preview" class="image-preview-thumb">
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <div class="fw-semibold text-truncate small" id="imagePreviewFilename">replacement-photo.jpg</div>
+                                        <div class="text-success small"><i class="bi bi-check2-circle me-1"></i>New image selected</div>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-danger btn-sm" id="removeImageBtn" title="Cancel replacement">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between pt-3 border-top">
+                            <a href="{{ url_for('components.component_detail', component_id=component.id) }}" class="btn btn-outline-secondary px-4">Cancel</a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bi bi-save me-1"></i>Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

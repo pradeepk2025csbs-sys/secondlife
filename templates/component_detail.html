@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% block title %}{{ component.name }} - Details{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Breadcrumb / Back button -->
+    <div class="mb-3">
+        <a href="{{ url_for('components.component_list') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Back to Components
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Image & Quick Status Column -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm overflow-hidden mb-4">
+                <div class="comp-detail-img-wrapper">
+                    <img src="{{ url_for('static', filename=get_component_image(component)) }}" 
+                         class="comp-detail-img" 
+                         alt="{{ component.name }}"
+                         onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/components/default.jpg') }}';">
+                </div>
+
+                <div class="card-body border-top">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted small">Current Availability</span>
+                        <span class="badge {% if component.status == 'Available' %}bg-success-subtle text-success-emphasis{% elif component.status == 'Reserved' %}bg-warning-subtle text-warning-emphasis{% else %}bg-secondary-subtle text-secondary-emphasis{% endif %} fs-6 px-3 py-1">
+                            {{ component.status }}
+                        </span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">Listed on</span>
+                        <span class="fw-medium small">{{ component.created_at.strftime('%b %d, %Y') }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Owner card -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon-sm bg-primary-subtle text-primary me-3">
+                            <i class="bi bi-person"></i>
+                        </div>
+                        <div>
+                            <div class="fw-bold">{{ component.owner.name if component.owner else 'Unknown' }}</div>
+                            <div class="text-muted small">Component Contributor</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Component Information Column -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+                        <div>
+                            <span class="badge bg-light text-dark border me-2">{{ component.category }}</span>
+                            <span class="badge bg-info-subtle text-info-emphasis">{{ component.condition }} Condition</span>
+                        </div>
+
+                        <!-- Owner / Admin Controls -->
+                        {% if session.get('user_id') and (session.get('user_id') == component.user_id or session.get('user_role') == 'admin') %}
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                Manage
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('components.edit_component', component_id=component.id) }}">
+                                        <i class="bi bi-pencil me-2"></i>Edit Component
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="POST" action="{{ url_for('components.delete_component', component_id=component.id) }}" onsubmit="return confirm('Are you sure you want to permanently delete this component?');">
+                                        <button type="submit" class="dropdown-item text-danger">
+                                            <i class="bi bi-trash me-2"></i>Delete Component
+                                        </button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <h2 class="fw-bold mb-2">{{ component.name }}</h2>
+
+                    <!-- Seller info -->
+                    <div class="d-flex align-items-center mb-3 text-muted small">
+                        <i class="bi bi-shop me-2 text-primary fs-6"></i>
+                        <span>Seller: <strong class="text-dark">{{ component.seller_name }}</strong></span>
+                        <span class="badge bg-success-subtle text-success ms-2"><i class="bi bi-patch-check-fill me-1"></i>Verified Seller</span>
+                    </div>
+
+                    <!-- Marketplace Pricing & Purchase Action Panel -->
+                    <div class="card border-0 shadow-sm p-4 mb-4" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(6, 182, 212, 0.05)); border: 1px solid rgba(16, 185, 129, 0.2) !important; border-radius: 16px;">
+                        <div class="d-flex flex-wrap justify-content-between align-items-baseline mb-3">
+                            <div>
+                                <span class="text-muted small d-block">Unit Price</span>
+                                <span class="fs-2 fw-bold text-success" id="unitPriceDisplay" style="font-family: 'Outfit', sans-serif;">{{ format_currency(component.price) }}</span>
+                            </div>
+                            <div class="text-end">
+                                <span class="text-muted small d-block">Total (Price × Qty)</span>
+                                <span class="fs-3 fw-bold text-dark" id="totalPriceDisplay" style="font-family: 'Outfit', sans-serif;">{{ format_currency(component.price) }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Quantity Selector: [-] 1 [+] -->
+                        <div class="d-flex align-items-center justify-content-between mb-3 p-2 bg-white rounded-3 border">
+                            <span class="fw-semibold text-secondary small ps-2">Select Quantity:</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <button type="button" class="btn btn-outline-secondary btn-sm px-3 rounded-2 fw-bold" id="btnDecreaseQty" onclick="changeQty(-1)" disabled>-</button>
+                                <input type="number" id="detailQtyInput" name="quantity" value="1" min="1" max="{{ component.quantity }}" class="form-control form-control-sm text-center fw-bold" style="width: 60px;" readonly>
+                                <button type="button" class="btn btn-outline-secondary btn-sm px-3 rounded-2 fw-bold" id="btnIncreaseQty" onclick="changeQty(1)" {% if component.quantity <= 1 %}disabled{% endif %}>+</button>
+                            </div>
+                        </div>
+
+                        <!-- Marketplace Action Buttons -->
+                        <div class="row g-2">
+                            {% if session.get('user_id') and (session.get('user_id') == component.seller_id or session.get('user_id') == component.user_id) %}
+                            <div class="col-12">
+                                <div class="alert alert-secondary text-center py-2 mb-0 fw-semibold">
+                                    <i class="bi bi-person-check me-2"></i>This is your listing. You cannot purchase your own component.
+                                </div>
+                            </div>
+                            {% elif component.quantity <= 0 or component.status != 'Available' %}
+                            <div class="col-12">
+                                <button class="btn btn-danger-subtle text-danger border border-danger-subtle w-100 py-2 fw-bold disabled">
+                                    <i class="bi bi-x-circle me-2"></i>Out of Stock
+                                </button>
+                            </div>
+                            {% else %}
+                            <div class="col-sm-6">
+                                <form id="addToCartForm" action="{{ url_for('marketplace.add_to_cart', component_id=component.id) }}" method="POST">
+                                    <input type="hidden" name="quantity" id="cartFormQty" value="1">
+                                    <button type="submit" class="btn btn-outline-success w-100 py-2 fw-bold d-flex align-items-center justify-content-center">
+                                        <i class="bi bi-cart-plus fs-5 me-2"></i>Add to Cart
+                                    </button>
+                                </form>
+                            </div>
+                            <div class="col-sm-6">
+                                <form id="buyNowForm" action="{{ url_for('marketplace.buy_now', component_id=component.id) }}" method="POST">
+                                    <input type="hidden" name="quantity" id="buyNowFormQty" value="1">
+                                    <button type="submit" class="btn btn-success w-100 py-2 fw-bold d-flex align-items-center justify-content-center text-white">
+                                        <i class="bi bi-lightning-charge-fill fs-5 me-2"></i>Buy Now
+                                    </button>
+                                </form>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-sm-6">
+                            <div class="p-3 bg-light rounded-3">
+                                <div class="text-muted small mb-1"><i class="bi bi-box-seam me-1"></i>Available Stock</div>
+                                <div class="fs-4 fw-bold text-dark">{{ component.quantity }} units</div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-3 bg-light rounded-3">
+                                <div class="text-muted small mb-1"><i class="bi bi-speedometer2 me-1"></i>Weight per Unit</div>
+                                <div class="fs-4 fw-bold text-success">{{ format_weight(component.estimated_weight) }}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold mb-2">Description & Details</h5>
+                    <div class="text-muted mb-4" style="line-height: 1.7; white-space: pre-line;">
+                        {{ component.description or 'No extra description has been provided for this component.' }}
+                    </div>
+
+                    <div class="alert alert-success-subtle border-success-subtle d-flex align-items-center p-3 mb-4">
+                        <i class="bi bi-recycle fs-3 text-success me-3"></i>
+                        <div>
+                            <div class="fw-bold text-success-emphasis">Environmental Impact</div>
+                            <div class="small text-success-emphasis">
+                                Reusing this part will prevent approximately <strong>{{ format_weight(component.estimated_weight * component.quantity) }}</strong> of electronic waste from ending up in landfills.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 pt-3 border-top">
+                        <a href="{{ url_for('dashboard.matches') }}" class="btn btn-primary">
+                            <i class="bi bi-diagram-3 me-1"></i>Check Project Matches
+                        </a>
+                        <a href="{{ url_for('projects.project_list') }}" class="btn btn-outline-secondary">
+                            <i class="bi bi-lightbulb me-1"></i>Browse Reuse Projects
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const unitPrice = {{ component.price or 0.0 }};
+const maxStock = {{ component.quantity or 0 }};
+
+function changeQty(delta) {
+    const input = document.getElementById('detailQtyInput');
+    let current = parseInt(input.value) || 1;
+    let next = current + delta;
+    if (next < 1) next = 1;
+    if (next > maxStock) next = maxStock;
+    input.value = next;
+
+    document.getElementById('cartFormQty').value = next;
+    document.getElementById('buyNowFormQty').value = next;
+
+    // Calculate Total = price * selected quantity
+    const total = unitPrice * next;
+    const formatted = '₹' + Math.round(total).toLocaleString('en-IN');
+    document.getElementById('totalPriceDisplay').textContent = formatted;
+
+    // Update button states
+    const btnDec = document.getElementById('btnDecreaseQty');
+    const btnInc = document.getElementById('btnIncreaseQty');
+    if (btnDec) btnDec.disabled = (next <= 1);
+    if (btnInc) btnInc.disabled = (next >= maxStock);
+}
+</script>
+{% endblock %}

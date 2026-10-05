@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Smart Project Matches{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-diagram-3 text-primary me-2"></i>Smart Project Matches
+            </h2>
+            <p class="text-muted mb-0">Projects automatically matched against your available electronic components, sorted by feasibility</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('dashboard.refresh_matches') }}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-arrow-repeat me-1"></i>Recalculate Matches
+            </a>
+            <a href="{{ url_for('components.add_component') }}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle me-1"></i>Add More Parts
+            </a>
+        </div>
+    </div>
+
+    <!-- Matches Listing -->
+    {% if matches %}
+    <div class="row g-4">
+        {% for match in matches %}
+        {% set proj = match.project %}
+        {% set label, badge_type = get_feasibility_label(match.feasibility_score) %}
+        <div class="col-lg-6">
+            <div class="card h-100 border-0 shadow-sm card-hover card-3d-tilt bg-white" style="border-radius: 18px; border: 1px solid rgba(226, 232, 240, 0.85); overflow: hidden;">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <span class="badge bg-light text-dark border me-1">{{ proj.category }}</span>
+                            <span class="badge bg-light text-secondary border">{{ proj.difficulty }}</span>
+                        </div>
+                        <span class="badge bg-{{ badge_type }}-subtle text-{{ badge_type }}-emphasis fs-6 px-3 py-1">
+                            {{ match.feasibility_score }}% {{ label }}
+                        </span>
+                    </div>
+
+                    <h4 class="fw-bold mb-2">
+                        <a href="{{ url_for('projects.project_detail', project_id=proj.id) }}" class="text-decoration-none text-dark">
+                            {{ proj.title }}
+                        </a>
+                    </h4>
+
+                    <p class="text-muted small mb-3 text-truncate-2" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">
+                        {{ proj.description }}
+                    </p>
+
+                    <!-- Feasibility Progress Bar -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Component Compatibility</span>
+                            <span><strong>{{ match.total_satisfied }}</strong> of {{ match.total_required }} units available</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-{{ badge_type }}" role="progressbar" style="width: {{ match.feasibility_score }}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Component Breakdown Accordion / Columns -->
+                    <div class="row g-2 mb-3 small">
+                        <div class="col-sm-6">
+                            <div class="p-2 bg-success-subtle rounded-2 h-100">
+                                <div class="fw-bold text-success-emphasis mb-1">
+                                    <i class="bi bi-check-circle me-1"></i>Matched Parts ({{ match.matched|length }})
+                                </div>
+                                {% if match.matched %}
+                                <div class="text-muted" style="max-height: 80px; overflow-y: auto;">
+                                    {% for item in match.matched %}
+                                    <div>&bull; {{ item.name }} (have {{ item.available }}/{{ item.required }})</div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <div class="text-muted fst-italic">None matched yet</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-2 bg-danger-subtle rounded-2 h-100">
+                                <div class="fw-bold text-danger-emphasis mb-1">
+                                    <i class="bi bi-x-circle me-1"></i>Missing Parts ({{ match.missing|length }})
+                                </div>
+                                {% if match.missing %}
+                                <div class="text-muted" style="max-height: 80px; overflow-y: auto;">
+                                    {% for item in match.missing %}
+                                    <div>&bull; {{ item.name }} (need {{ item.needed }})</div>
+                                    {% endfor %}
+                                </div>
+                                {% else %}
+                                <div class="text-success fw-semibold">Ready to build!</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
+                        <div class="small text-muted">
+                            <i class="bi bi-leaf text-success me-1"></i>{{ format_weight(proj.estimated_waste_reduction) }} e-waste prevented
+                        </div>
+                        <div class="d-flex gap-2">
+                            <form method="POST" action="{{ url_for('projects.save_project', project_id=proj.id) }}">
+                                <button type="submit" class="btn btn-outline-secondary btn-sm" title="Save Project">
+                                    <i class="bi bi-bookmark"></i>
+                                </button>
+                            </form>
+                            <a href="{{ url_for('projects.project_detail', project_id=proj.id) }}" class="btn btn-primary btn-sm px-3">
+                                View Project
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card border-0 shadow-sm py-5 text-center">
+        <div class="card-body">
+            <i class="bi bi-diagram-3 text-muted" style="font-size: 3.5rem;"></i>
+            <h4 class="fw-bold mt-3">No Matches Found</h4>
+            <p class="text-muted">Start by adding components to your inventory to calculate project compatibility.</p>
+            <a href="{{ url_for('components.add_component') }}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle me-1"></i>Add Components
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

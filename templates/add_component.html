@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Sell Your Electronic Component - SECONDLIFE{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center mb-3">
+                <a href="{{ url_for('components.component_list') }}" class="btn btn-outline-secondary btn-sm me-3">
+                    <i class="bi bi-arrow-left me-1"></i>Back
+                </a>
+                <h2 class="fw-bold mb-0">
+                    <i class="bi bi-tag-fill text-success me-2"></i>Sell Your Electronic Component
+                </h2>
+            </div>
+            <p class="text-muted mb-4">
+                List unused microcontrollers, sensors, motors, or salvaged components from your workspace so other builders can purchase them and divert e-waste!
+            </p>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4 p-md-5">
+                    <form method="POST" action="{{ url_for('components.add_component') }}" enctype="multipart/form-data">
+                        <!-- Component Name -->
+                        <div class="mb-3">
+                            <label for="name" class="form-label fw-semibold">
+                                Component Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control form-control-lg" id="name" name="name"
+                                   placeholder="e.g. Arduino Uno, Ultrasonic Sensor, 5V Relay..."
+                                   value="{{ name or '' }}" required>
+                            <div class="form-text">Use clear, recognizable component names to match projects accurately.</div>
+                        </div>
+
+                        <!-- Category & Condition -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="category" class="form-label fw-semibold">
+                                    Category <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select" id="category" name="category" required>
+                                    <option value="" disabled {% if not category %}selected{% endif %}>Select category...</option>
+                                    {% for cat in categories %}
+                                    <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="condition" class="form-label fw-semibold">Condition</label>
+                                <select class="form-select" id="condition" name="condition">
+                                    {% for cond in conditions %}
+                                    <option value="{{ cond }}" {% if condition == cond or (not condition and cond == 'Good') %}selected{% endif %}>
+                                        {{ cond }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Quantity, Price & Estimated Weight -->
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label for="quantity" class="form-label fw-semibold">Quantity <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-box-seam"></i></span>
+                                    <input type="number" class="form-control" id="quantity" name="quantity"
+                                           min="1" value="{{ quantity or 1 }}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="price" class="form-label fw-semibold">Price (₹) <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text fw-bold">₹</span>
+                                    <input type="number" step="1" min="0" class="form-control" id="price" name="price"
+                                           placeholder="e.g. 150" value="{{ price or 0 }}" required>
+                                </div>
+                                <div class="form-text">Listing price in marketplace.</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="estimated_weight" class="form-label fw-semibold">Estimated Weight</label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-speedometer2"></i></span>
+                                    <input type="number" step="0.1" class="form-control" id="estimated_weight" name="estimated_weight"
+                                           placeholder="e.g. 25" value="{{ estimated_weight or 0 }}">
+                                    <span class="input-group-text">g</span>
+                                </div>
+                                <div class="form-text">Used to calculate e-waste diverted.</div>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label fw-semibold">Description / Notes</label>
+                            <textarea class="form-control" id="description" name="description" rows="3"
+                                      placeholder="Working condition, salvage origin, pin header status, specs, etc.">{{ description or '' }}</textarea>
+                        </div>
+
+                        <!-- Image Upload Dropzone & Live Preview -->
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Component Photo (Optional)</label>
+                            
+                            <div class="upload-dropzone mb-2" id="uploadDropzone" onclick="document.getElementById('image').click();">
+                                <i class="bi bi-cloud-arrow-up upload-dropzone-icon d-block"></i>
+                                <div class="fw-semibold text-dark mb-1">Click to browse or drag and drop photo here</div>
+                                <div class="text-muted small">A clear photo helps other makers identify pinouts and hardware condition</div>
+                                <div class="text-muted small mt-1">Supported formats: PNG, JPG, JPEG, WEBP (Max 16MB)</div>
+                                <input class="d-none" type="file" id="image" name="image" accept=".png,.jpg,.jpeg,.webp">
+                            </div>
+
+                            <!-- Live Instant Preview Container -->
+                            <div id="imagePreviewContainer" class="d-none mt-2">
+                                <div class="image-preview-card">
+                                    <img id="imagePreview" src="" alt="Selected Preview" class="image-preview-thumb">
+                                    <div class="flex-grow-1 overflow-hidden">
+                                        <div class="fw-semibold text-truncate small" id="imagePreviewFilename">component-photo.jpg</div>
+                                        <div class="text-success small"><i class="bi bi-check2-circle me-1"></i>Ready for upload</div>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-danger btn-sm" id="removeImageBtn" title="Remove photo">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                            <a href="{{ url_for('components.component_list') }}" class="btn btn-outline-secondary px-4">Cancel</a>
+                            <button type="submit" class="btn btn-success px-4 fw-bold text-white shadow-sm">
+                                <i class="bi bi-cloud-upload me-1"></i>Publish Listing
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block title %}{% if project %}Edit Project - {{ project.title }}{% else %}Add New Project{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-9">
+            <div class="d-flex align-items-center mb-3">
+                <a href="{{ url_for('admin.admin_projects') }}" class="btn btn-outline-secondary btn-sm me-3">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Projects
+                </a>
+                <h2 class="fw-bold mb-0">
+                    <i class="bi bi-lightbulb text-warning me-2"></i>{% if project %}Edit Project{% else %}Create Reuse Project{% endif %}
+                </h2>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4 p-md-5">
+                    <form method="POST" enctype="multipart/form-data" id="projectForm">
+                        <div class="mb-3">
+                            <label for="title" class="form-label fw-semibold">Project Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-lg" id="title" name="title"
+                                   value="{{ project.title if project else '' }}" required placeholder="e.g. Smart Dustbin">
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="category" class="form-label fw-semibold">Project Category</label>
+                                <select class="form-select" id="category" name="category" required>
+                                    {% for cat in categories %}
+                                    <option value="{{ cat }}" {% if project and project.category == cat %}selected{% endif %}>{{ cat }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="difficulty" class="form-label fw-semibold">Difficulty Level</label>
+                                <select class="form-select" id="difficulty" name="difficulty">
+                                    {% for diff in difficulties %}
+                                    <option value="{{ diff }}" {% if project and project.difficulty == diff %}selected{% endif %}>{{ diff }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label for="estimated_cost" class="form-label fw-semibold">Estimated Additional Cost (₹)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    <input type="number" step="1" class="form-control" id="estimated_cost" name="estimated_cost"
+                                           value="{{ project.estimated_cost|int if project else 0 }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="estimated_waste_reduction" class="form-label fw-semibold">Estimated Waste Reduction (g)</label>
+                                <div class="input-group">
+                                    <input type="number" step="1" class="form-control" id="estimated_waste_reduction" name="estimated_waste_reduction"
+                                           value="{{ project.estimated_waste_reduction|int if project else 200 }}">
+                                    <span class="input-group-text">grams</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label fw-semibold">Description & Instructions</label>
+                            <textarea class="form-control" id="description" name="description" rows="4"
+                                      placeholder="Explain how this project works and how to assemble it...">{{ project.description if project else '' }}</textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Project Cover Image</label>
+                            {% if project and project.image %}
+                            <div class="mb-2">
+                                <img src="{{ url_for('static', filename='uploads/' + project.image) }}" alt="Cover" style="height: 80px; border-radius: 8px; object-fit: cover;">
+                            </div>
+                            {% endif %}
+                            <input class="form-control" type="file" id="image" name="image" accept=".png,.jpg,.jpeg,.webp">
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Component Requirements Section -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h5 class="fw-bold mb-0">
+                                    <i class="bi bi-cpu text-primary me-2"></i>Required Components
+                                </h5>
+                                <div class="text-muted small">These are used by the smart matching engine</div>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="addRequirementBtn">
+                                <i class="bi bi-plus me-1"></i>Add Requirement
+                            </button>
+                        </div>
+
+                        <div id="requirementsContainer">
+                            {% if requirements %}
+                                {% for req in requirements %}
+                                <div class="row g-2 align-items-center mb-2 requirement-row">
+                                    <div class="col-5">
+                                        <input type="text" class="form-control" name="req_name[]" value="{{ req.component_name }}" placeholder="Component Name" required>
+                                    </div>
+                                    <div class="col-4">
+                                        <select class="form-select" name="req_category[]">
+                                            {% for ccat in component_categories %}
+                                            <option value="{{ ccat }}" {% if req.category == ccat %}selected{% endif %}>{{ ccat }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" min="1" class="form-control" name="req_quantity[]" value="{{ req.required_quantity }}" placeholder="Qty">
+                                    </div>
+                                    <div class="col-1 text-center">
+                                        <button type="button" class="btn btn-outline-danger btn-sm remove-row-btn" title="Remove">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="row g-2 align-items-center mb-2 requirement-row">
+                                    <div class="col-5">
+                                        <input type="text" class="form-control" name="req_name[]" placeholder="e.g. Arduino Uno" required>
+                                    </div>
+                                    <div class="col-4">
+                                        <select class="form-select" name="req_category[]">
+                                            {% for ccat in component_categories %}
+                                            <option value="{{ ccat }}">{{ ccat }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-2">
+                                        <input type="number" min="1" class="form-control" name="req_quantity[]" value="1" placeholder="Qty">
+                                    </div>
+                                    <div class="col-1 text-center">
+                                        <button type="button" class="btn btn-outline-danger btn-sm remove-row-btn" title="Remove">
+                                            <i class="bi bi-x"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 pt-4 border-top mt-4">
+                            <a href="{{ url_for('admin.admin_projects') }}" class="btn btn-outline-secondary px-4">Cancel</a>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bi bi-save me-1"></i>{% if project %}Save Changes{% else %}Create Project{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const container = document.getElementById('requirementsContainer');
+    const addBtn = document.getElementById('addRequirementBtn');
+
+    addBtn.addEventListener('click', function () {
+        const row = document.createElement('div');
+        row.className = 'row g-2 align-items-center mb-2 requirement-row';
+        row.innerHTML = `
+            <div class="col-5">
+                <input type="text" class="form-control" name="req_name[]" placeholder="Component Name" required>
+            </div>
+            <div class="col-4">
+                <select class="form-select" name="req_category[]">
+                    {% for ccat in component_categories %}
+                    <option value="{{ ccat }}">{{ ccat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-2">
+                <input type="number" min="1" class="form-control" name="req_quantity[]" value="1" placeholder="Qty">
+            </div>
+            <div class="col-1 text-center">
+                <button type="button" class="btn btn-outline-danger btn-sm remove-row-btn" title="Remove">
+                    <i class="bi bi-x"></i>
+                </button>
+            </div>
+        `;
+        container.appendChild(row);
+        bindRemoveButtons();
+    });
+
+    function bindRemoveButtons() {
+        document.querySelectorAll('.remove-row-btn').forEach(btn => {
+            btn.onclick = function () {
+                const rows = container.querySelectorAll('.requirement-row');
+                if (rows.length > 1) {
+                    btn.closest('.requirement-row').remove();
+                } else {
+                    alert('At least one component requirement is needed.');
+                }
+            };
+        });
+    }
+
+    bindRemoveButtons();
+});
+</script>
+{% endblock %}
+{% endblock %}

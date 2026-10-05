@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 240" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="45%" r="65%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="70%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
+    </radialGradient>
+    <filter id="softShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+    <linearGradient id="silverMetal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="40%" stop-color="#e2e8f0"/>
+      <stop offset="70%" stop-color="#94a3b8"/>
+      <stop offset="100%" stop-color="#64748b"/>
+    </linearGradient>
+    <linearGradient id="goldPin" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="50%" stop-color="#eab308"/>
+      <stop offset="100%" stop-color="#ca8a04"/>
+    </linearGradient>
+  </defs>
+  <!-- Studio Backdrop -->
+  <rect width="320" height="240" fill="url(#bgGrad)" rx="16"/>
+  <!-- Hardware Subject -->
+  <g filter="url(#softShadow)">
+    
+  <!-- Top module PCB -->
+  <rect x="120" y="55" width="80" height="45" rx="4" fill="#1e3a8a" stroke="#172554"/>
+  <circle cx="135" cy="72" r="3" fill="#ef4444"/>
+  <circle cx="150" cy="72" r="3" fill="#22c55e"/>
+  <!-- 2-Prong Fork Probe -->
+  <path d="M135,100 L135,185 L145,195 L145,100 Z" fill="url(#goldPin)" stroke="#ca8a04"/>
+  <path d="M175,100 L175,185 L185,195 L185,100 Z" fill="url(#goldPin)" stroke="#ca8a04"/>
+
+  </g>
+</svg>

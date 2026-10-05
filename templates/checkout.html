@@ -1,0 +1,497 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout – SECONDLIFE Marketplace{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-md-5">
+    <!-- Header -->
+    <div class="mb-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('home') }}" class="text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('marketplace.view_cart') }}" class="text-decoration-none">Cart</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Checkout</li>
+            </ol>
+        </nav>
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div>
+                <h1 class="h3 fw-bold mb-0 text-dark">
+                    <i class="bi bi-shield-lock-fill text-success me-2"></i>Secure Checkout
+                </h1>
+                <p class="text-muted small mb-0">Enter your shipping details and choose your preferred payment method.</p>
+            </div>
+            {% if payment_mode == 'demo' %}
+            <span class="badge bg-warning-subtle text-dark border border-warning-subtle px-3 py-2 rounded-pill">
+                <i class="bi bi-sliders me-1 text-warning"></i>Payment Mode: Demo Sandbox
+            </span>
+            {% else %}
+            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill">
+                <i class="bi bi-shield-check me-1"></i>Razorpay Gateway Live
+            </span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Alert placeholder for AJAX errors -->
+    <div id="checkoutAlert" class="alert alert-danger d-none border-0 shadow-sm" role="alert"></div>
+
+    <form method="POST" action="{{ url_for('marketplace.checkout') }}" id="checkoutForm">
+        <div class="row g-4">
+            <!-- Left Column: Shipping & Payment Information -->
+            <div class="col-lg-7">
+                <!-- Customer & Delivery Address Card -->
+                <div class="card border-0 shadow-sm mb-4" style="border-radius: 16px;">
+                    <div class="card-header bg-white py-3 px-4 border-bottom">
+                        <h5 class="fw-bold mb-0 text-dark">
+                            <i class="bi bi-geo-alt-fill text-primary me-2"></i>1. Delivery Address
+                        </h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-dark">Full Name <span class="text-danger">*</span></label>
+                                <input type="text" id="customer_name" name="customer_name" class="form-control" value="{{ customer_name or (user.name if user else '') }}" placeholder="e.g. Rahul Sharma" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-dark">Email Address <span class="text-danger">*</span></label>
+                                <input type="email" id="email" name="email" class="form-control" value="{{ email or (user.email if user else '') }}" placeholder="you@example.com" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-dark">Phone Number <span class="text-danger">*</span></label>
+                                <input type="tel" id="phone" name="phone" class="form-control" value="{{ phone or '' }}" placeholder="10-digit mobile number" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-dark">PIN Code <span class="text-danger">*</span></label>
+                                <input type="text" id="pincode" name="pincode" class="form-control" value="{{ pincode or '' }}" placeholder="e.g. 560001" pattern="[0-9]{6}" title="6 digit PIN code" required>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold small text-dark">Address (House / Street / Locality) <span class="text-danger">*</span></label>
+                                <textarea id="address" name="address" class="form-control" rows="2" placeholder="Flat No, Building, Street, Area" required>{{ address or '' }}</textarea>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-dark">City <span class="text-danger">*</span></label>
+                                <input type="text" id="city" name="city" class="form-control" value="{{ city or '' }}" placeholder="e.g. Bengaluru" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-dark">State <span class="text-danger">*</span></label>
+                                <input type="text" id="state" name="state" class="form-control" value="{{ state or '' }}" placeholder="e.g. Karnataka" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Method Card -->
+                <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+                    <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0 text-dark">
+                            <i class="bi bi-credit-card-2-front-fill text-success me-2"></i>2. Payment Method
+                        </h5>
+                        <span class="badge bg-light text-muted border small"><i class="bi bi-lock me-1"></i>256-Bit Encrypted</span>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="row g-3">
+                            <!-- Razorpay Primary Gateway Option -->
+                            <div class="col-12">
+                                <label class="payment-option-card d-flex align-items-start p-3 border rounded-3 cursor-pointer w-100 mb-0 border-primary bg-primary-subtle bg-opacity-10 position-relative" id="labelRazorpay" style="cursor: pointer; transition: all 0.2s ease;">
+                                    <input class="form-check-input me-3 mt-1" type="radio" name="payment_method" value="Razorpay" id="payRazorpay" checked>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
+                                            <span class="fw-bold text-dark fs-6">Razorpay Secure Checkout</span>
+                                            <span class="badge bg-primary text-white">Recommended</span>
+                                            {% if payment_mode == 'demo' %}
+                                            <span class="badge bg-info-subtle text-info border border-info-subtle">Demo / Test Simulation</span>
+                                            {% else %}
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle">Instant Capture</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-muted small">
+                                            UPI (Google Pay, PhonePe, Paytm), Credit & Debit Cards (Visa, MasterCard, RuPay), NetBanking, and Wallets.
+                                        </div>
+                                        <div class="mt-2 d-flex align-items-center gap-2 text-primary small fw-semibold">
+                                            <i class="bi bi-shield-check"></i> Supported across all Indian banks & UPI apps
+                                        </div>
+                                    </div>
+                                    <div class="text-end d-none d-sm-block ps-2">
+                                        <span class="badge bg-white text-primary border shadow-sm px-2 py-1 font-monospace">RZP</span>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <!-- Cash on Delivery -->
+                            <div class="col-12">
+                                <label class="payment-option-card d-flex align-items-start p-3 border rounded-3 cursor-pointer w-100 mb-0" id="labelCOD" style="cursor: pointer; transition: all 0.2s ease;">
+                                    <input class="form-check-input me-3 mt-1" type="radio" name="payment_method" value="Cash on Delivery" id="payCOD">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <span class="fw-bold text-dark">Cash on Delivery (COD)</span>
+                                            <span class="badge bg-light text-muted border">Doorstep</span>
+                                        </div>
+                                        <div class="text-muted small">Pay cash when your reused hardware components are delivered.</div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <!-- Demo Quick Payment Option -->
+                            <div class="col-12">
+                                <label class="payment-option-card d-flex align-items-start p-3 border rounded-3 cursor-pointer w-100 mb-0" id="labelDemo" style="cursor: pointer; transition: all 0.2s ease;">
+                                    <input class="form-check-input me-3 mt-1" type="radio" name="payment_method" value="Demo Payment" id="payDemo">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <span class="fw-bold text-dark">Demo One-Click Payment</span>
+                                            <span class="badge bg-secondary-subtle text-secondary border">Evaluation</span>
+                                        </div>
+                                        <div class="text-muted small">Direct simulation bypass for fast hackathon demo testing.</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Order Items Review & Confirmation -->
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm sticky-top" style="top: 90px; border-radius: 16px;">
+                    <div class="card-header bg-white py-3 px-4 border-bottom">
+                        <h5 class="fw-bold mb-0 text-dark">3. Order Summary</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="order-items-list mb-3" style="max-height: 280px; overflow-y: auto;">
+                            {% for item in cart_items %}
+                            {% set comp = item.component %}
+                            <div class="d-flex align-items-center py-2 border-bottom">
+                                <div class="comp-checkout-thumb me-3 rounded-2 border p-1 bg-light d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; flex-shrink: 0;">
+                                    <img src="{{ url_for('static', filename=get_component_image(comp)) }}" alt="{{ comp.name }}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold small text-dark text-truncate" style="max-width: 190px;">{{ comp.name }}</div>
+                                    <div class="text-muted small" style="font-size: 0.75rem;">
+                                        Qty: <strong>{{ item.quantity }}</strong> × {{ format_currency(comp.price) }}
+                                    </div>
+                                </div>
+                                <div class="text-end fw-bold text-success small" style="font-family: 'Outfit', sans-serif;">
+                                    {{ format_currency(item.subtotal) }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Price Breakdown -->
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">Items Subtotal</span>
+                            <span class="fw-semibold text-dark">{{ format_currency(subtotal) }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">Standard Delivery</span>
+                            <span class="text-success fw-bold small">FREE (₹0)</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                            <span class="text-muted small">Carbon Reduction Offset</span>
+                            <span class="text-success fw-bold small"><i class="bi bi-tree-fill me-1"></i>Included</span>
+                        </div>
+
+                        <!-- Total Due -->
+                        <div class="d-flex justify-content-between align-items-baseline mb-4">
+                            <span class="fw-bold fs-5 text-dark">Total Payable</span>
+                            <span class="fw-bold fs-3 text-success" style="font-family: 'Outfit', sans-serif;">{{ format_currency(total) }}</span>
+                        </div>
+
+                        <!-- Place Order Button -->
+                        <button type="submit" id="placeOrderBtn" class="btn btn-success btn-lg w-100 fw-bold py-3 text-white shadow-sm d-flex align-items-center justify-content-center">
+                            <i class="bi bi-shield-lock-fill me-2 fs-5" id="btnIcon"></i>
+                            <span id="btnText">Pay {{ format_currency(total) }} with Razorpay</span>
+                        </button>
+
+                        <div class="mt-3 text-center text-muted small" style="font-size: 0.75rem;">
+                            <i class="bi bi-shield-check text-success me-1"></i>
+                            Payment is protected & components are reserved in database.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Simulated Demo Payment Confirmation Modal -->
+<div class="modal fade" id="demoPaymentModal" tabindex="-1" aria-labelledby="demoPaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark" id="demoPaymentModalLabel">
+                    <i class="bi bi-wallet2 text-success me-2"></i>Simulated Razorpay Gateway
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <div class="mb-3">
+                    <div class="rounded-circle bg-success-subtle text-success d-inline-flex align-items-center justify-content-center" style="width: 64px; height: 64px; font-size: 2rem;">
+                        <i class="bi bi-check2"></i>
+                    </div>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Razorpay Sandbox Simulation</h5>
+                <p class="text-muted small mb-3">Order Amount: <strong class="text-success fs-6">{{ format_currency(total) }}</strong></p>
+                <div class="bg-light p-3 rounded-3 text-start small mb-4">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Simulated Order ID:</span>
+                        <code class="text-dark" id="modalOrderId">-</code>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Payment Channel:</span>
+                        <span class="fw-semibold text-dark">UPI / Test Card</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Status:</span>
+                        <span class="badge bg-success-subtle text-success">Ready for Capture</span>
+                    </div>
+                </div>
+                <button type="button" id="confirmSimulatedPaymentBtn" class="btn btn-success btn-lg w-100 fw-bold py-2 shadow-sm text-white">
+                    <i class="bi bi-check-circle me-1"></i>Simulate Successful Payment
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Razorpay Checkout Official SDK -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('checkoutForm');
+    const placeOrderBtn = document.getElementById('placeOrderBtn');
+    const btnText = document.getElementById('btnText');
+    const btnIcon = document.getElementById('btnIcon');
+    const alertBox = document.getElementById('checkoutAlert');
+    const paymentRadios = document.querySelectorAll('input[name="payment_method"]');
+    const totalDisplay = "{{ format_currency(total) }}";
+    const paymentMode = "{{ payment_mode }}";
+    const razorpayKeyId = "{{ razorpay_key_id }}";
+
+    let demoModal = null;
+    if (typeof bootstrap !== 'undefined') {
+        const modalEl = document.getElementById('demoPaymentModal');
+        if (modalEl) demoModal = new bootstrap.Modal(modalEl);
+    }
+
+    let activeOrderData = null;
+
+    function showAlert(message) {
+        alertBox.textContent = message;
+        alertBox.classList.remove('d-none');
+        alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function hideAlert() {
+        alertBox.classList.add('d-none');
+        alertBox.textContent = '';
+    }
+
+    function setButtonLoading(isLoading) {
+        if (isLoading) {
+            placeOrderBtn.disabled = true;
+            btnIcon.className = 'spinner-border spinner-border-sm me-2';
+            btnText.textContent = 'Processing Payment...';
+        } else {
+            placeOrderBtn.disabled = false;
+            updateButtonLabel();
+        }
+    }
+
+    function updateButtonLabel() {
+        const selected = document.querySelector('input[name="payment_method"]:checked')?.value;
+        if (selected === 'Razorpay') {
+            btnIcon.className = 'bi bi-shield-lock-fill me-2 fs-5';
+            btnText.textContent = 'Pay ' + totalDisplay + ' with Razorpay';
+        } else if (selected === 'Cash on Delivery') {
+            btnIcon.className = 'bi bi-truck me-2 fs-5';
+            btnText.textContent = 'Place Order (Cash on Delivery)';
+        } else {
+            btnIcon.className = 'bi bi-lightning-charge-fill me-2 fs-5';
+            btnText.textContent = 'Confirm Demo Order (' + totalDisplay + ')';
+        }
+    }
+
+    paymentRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            // Style active card
+            document.querySelectorAll('.payment-option-card').forEach(card => {
+                card.classList.remove('border-primary', 'bg-primary-subtle', 'bg-opacity-10');
+            });
+            this.closest('.payment-option-card').classList.add('border-primary', 'bg-primary-subtle', 'bg-opacity-10');
+            updateButtonLabel();
+        });
+    });
+
+    // Form submit handler
+    form.addEventListener('submit', function(e) {
+        hideAlert();
+
+        const selectedMethod = document.querySelector('input[name="payment_method"]:checked')?.value;
+        if (selectedMethod !== 'Razorpay') {
+            // Allow normal form submission for COD or Demo One-Click
+            return true;
+        }
+
+        // Handle Razorpay Checkout
+        e.preventDefault();
+
+        // Native HTML5 form validation
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        setButtonLoading(true);
+
+        const formData = {
+            customer_name: document.getElementById('customer_name').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            phone: document.getElementById('phone').value.trim(),
+            address: document.getElementById('address').value.trim(),
+            city: document.getElementById('city').value.trim(),
+            state: document.getElementById('state').value.trim(),
+            pincode: document.getElementById('pincode').value.trim()
+        };
+
+        // 1. Create order on server
+        fetch("{{ url_for('marketplace.razorpay_create_order') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(res => res.json())
+        .then(orderData => {
+            if (!orderData.success) {
+                throw new Error(orderData.error || 'Failed to initialize payment.');
+            }
+
+            activeOrderData = orderData;
+
+            // Check if Razorpay live modal should be launched
+            const hasLiveSdk = typeof Razorpay !== 'undefined' && razorpayKeyId && !razorpayKeyId.includes('demo') && !orderData.is_demo;
+
+            if (hasLiveSdk) {
+                const options = {
+                    key: orderData.key_id || razorpayKeyId,
+                    amount: orderData.amount,
+                    currency: orderData.currency,
+                    name: 'SECONDLIFE Platform',
+                    description: 'E-Waste Hardware Marketplace Order',
+                    image: 'https://cdn-icons-png.flaticon.com/512/3233/3233483.png',
+                    order_id: orderData.order_id,
+                    handler: function (response) {
+                        completeVerification({
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            ...formData
+                        });
+                    },
+                    prefill: {
+                        name: formData.customer_name,
+                        email: formData.email,
+                        contact: formData.phone
+                    },
+                    theme: {
+                        color: '#059669'
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            setButtonLoading(false);
+                        }
+                    }
+                };
+
+                const rzp = new Razorpay(options);
+                rzp.on('payment.failed', function (response){
+                    setButtonLoading(false);
+                    showAlert('Payment failed: ' + (response.error.description || 'Unknown error'));
+                });
+                rzp.open();
+            } else {
+                // Demo / Simulated Payment Flow
+                if (demoModal) {
+                    document.getElementById('modalOrderId').textContent = orderData.order_id;
+                    demoModal.show();
+                    setButtonLoading(false);
+                } else {
+                    // Fallback to instant simulation verification
+                    completeVerification({
+                        razorpay_order_id: orderData.order_id,
+                        razorpay_payment_id: 'pay_demo_' + Date.now(),
+                        razorpay_signature: 'demo_sig_' + Math.random().toString(36).substring(7),
+                        ...formData
+                    });
+                }
+            }
+        })
+        .catch(err => {
+            setButtonLoading(false);
+            showAlert(err.message || 'Payment initiation error.');
+        });
+    });
+
+    // Simulated modal confirmation button
+    const confirmSimulatedBtn = document.getElementById('confirmSimulatedPaymentBtn');
+    if (confirmSimulatedBtn) {
+        confirmSimulatedBtn.addEventListener('click', function() {
+            if (demoModal) demoModal.hide();
+            setButtonLoading(true);
+
+            const formData = {
+                customer_name: document.getElementById('customer_name').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                address: document.getElementById('address').value.trim(),
+                city: document.getElementById('city').value.trim(),
+                state: document.getElementById('state').value.trim(),
+                pincode: document.getElementById('pincode').value.trim()
+            };
+
+            const orderId = (activeOrderData && activeOrderData.order_id) ? activeOrderData.order_id : ('order_demo_' + Date.now());
+
+            completeVerification({
+                razorpay_order_id: orderId,
+                razorpay_payment_id: 'pay_demo_' + Date.now(),
+                razorpay_signature: 'demo_sig_' + Math.random().toString(36).substring(7),
+                ...formData
+            });
+        });
+    }
+
+    function completeVerification(payload) {
+        fetch("{{ url_for('marketplace.razorpay_verify') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.redirect_url) {
+                window.location.href = data.redirect_url;
+            } else {
+                setButtonLoading(false);
+                showAlert(data.error || 'Payment verification failed.');
+            }
+        })
+        .catch(err => {
+            setButtonLoading(false);
+            showAlert('Network error verifying payment. Please check your connection.');
+        });
+    }
+
+    updateButtonLabel();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,593 @@
+{% extends "base.html" %}
+{% block title %}Home - E-Waste Reuse Platform{% endblock %}
+
+{% block content %}
+<!-- ═══════════════════════════════════════════════════════════════════
+     1. HERO SECTION: FUTURISTIC SUSTAINABILITY & 3D HARDWARE (680–760px)
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="hero-section">
+    <div class="hero-bg-pattern"></div>
+    <div class="hero-glow-orb"></div>
+    <div class="container position-relative">
+        <div class="row align-items-center">
+            <!-- Left Column: Copy & CTAs (~52% width) -->
+            <div class="col-lg-6 col-xl-6 pe-lg-4 mb-4 mb-lg-0">
+                <div class="hero-badge mb-3">
+                    <i class="bi bi-recycle me-2 text-success"></i> Intelligent E-Waste Reuse Platform
+                </div>
+                <h1 class="hero-title mb-3">
+                    Give Your Electronics<br>
+                    a <span class="text-gradient">Second Life</span>.
+                </h1>
+                <p class="hero-subtitle mb-4">
+                    Turn unused electronic components into meaningful projects and reduce e-waste through intelligent reuse.
+                </p>
+                <div class="d-flex flex-wrap gap-3 pt-1">
+                    <a href="{{ url_for('components.component_list') }}" class="btn btn-accent btn-lg px-4 d-inline-flex align-items-center">
+                        <i class="bi bi-cpu me-2"></i>Explore Components
+                    </a>
+                    <a href="{{ url_for('projects.project_list') }}" class="btn btn-outline-light btn-lg px-4 d-inline-flex align-items-center">
+                        <i class="bi bi-lightbulb me-2"></i>Find a Project
+                    </a>
+                </div>
+                <div class="d-flex align-items-center gap-4 mt-4 pt-2 text-muted small">
+                    <span class="text-white-50"><i class="bi bi-check-circle-fill text-success me-1"></i>Real-time Matching</span>
+                    <span class="text-white-50"><i class="bi bi-check-circle-fill text-success me-1"></i>Zero Landfill Impact</span>
+                    <span class="text-white-50"><i class="bi bi-check-circle-fill text-success me-1"></i>Open Blueprints</span>
+                </div>
+            </div>
+
+            <!-- Right Column: Premium Realistic Hardware Collage (~48% width) -->
+            <div class="col-lg-6 col-xl-6 ps-lg-4">
+                <div class="hero-hardware-collage">
+                    <div class="collage-ambient-glow"></div>
+
+                    <!-- 1. Center Top: Arduino Uno R3 -->
+                    <div class="hardware-card card-uno" title="Arduino Uno R3 - Real Hardware">
+                        <img src="{{ url_for('static', filename='images/components/arduino_uno.jpg') }}" alt="Arduino Uno R3">
+                        <div class="hardware-card-label">
+                            <span>Arduino Uno</span>
+                            <span class="hardware-card-badge">MCU</span>
+                        </div>
+                    </div>
+
+                    <!-- 2. Left Middle: ESP32 DevKit -->
+                    <div class="hardware-card card-esp32" title="ESP32 Wi-Fi & Bluetooth Module">
+                        <img src="{{ url_for('static', filename='images/components/esp32.jpg') }}" alt="ESP32 Module">
+                        <div class="hardware-card-label">
+                            <span>ESP32 Wi-Fi</span>
+                            <span class="hardware-card-badge">IoT</span>
+                        </div>
+                    </div>
+
+                    <!-- 3. Right Middle: HC-SR04 Ultrasonic Sensor -->
+                    <div class="hardware-card card-ultrasonic" title="HC-SR04 Ultrasonic Distance Sensor">
+                        <img src="{{ url_for('static', filename='images/components/ultrasonic_sensor.jpg') }}" alt="HC-SR04 Ultrasonic Sensor">
+                        <div class="hardware-card-label">
+                            <span>HC-SR04</span>
+                            <span class="hardware-card-badge">Sensor</span>
+                        </div>
+                    </div>
+
+                    <!-- 4. Left Lower: SG90 Micro Servo -->
+                    <div class="hardware-card card-servo" title="SG90 Micro Servo Motor">
+                        <img src="{{ url_for('static', filename='images/components/servo_motor.jpg') }}" alt="Servo Motor">
+                        <div class="hardware-card-label">
+                            <span>Servo SG90</span>
+                            <span class="hardware-card-badge">Motor</span>
+                        </div>
+                    </div>
+
+                    <!-- 5. Right Lower: Raspberry Pi 4 -->
+                    <div class="hardware-card card-rpi" title="Raspberry Pi Single Board Computer">
+                        <img src="{{ url_for('static', filename='images/components/raspberry_pi.jpg') }}" alt="Raspberry Pi">
+                        <div class="hardware-card-label">
+                            <span>Raspberry Pi</span>
+                            <span class="hardware-card-badge">SBC</span>
+                        </div>
+                    </div>
+
+                    <!-- 6. Bottom Center: Breadboard & Wires -->
+                    <div class="hardware-card card-breadboard" title="Solderless Prototyping Breadboard">
+                        <img src="{{ url_for('static', filename='images/components/breadboard.jpg') }}" alt="Breadboard">
+                        <div class="hardware-card-label">
+                            <span>Breadboard</span>
+                            <span class="hardware-card-badge">Wiring</span>
+                        </div>
+                    </div>
+
+                    <!-- Accent Floating Badges with Real Photos -->
+                    <div class="card-mini-sat sat-oled" title="0.96 inch I2C OLED Display">
+                        <img src="{{ url_for('static', filename='images/components/oled_display.jpg') }}" alt="OLED Display">
+                        <span>OLED Display</span>
+                    </div>
+
+                    <div class="card-mini-sat sat-dht11" title="DHT11 Temperature & Humidity Sensor">
+                        <img src="{{ url_for('static', filename='images/components/dht11.jpg') }}" alt="DHT11 Sensor">
+                        <span>DHT11</span>
+                    </div>
+
+                    <div class="card-mini-sat sat-pir" title="PIR Motion Detection Sensor">
+                        <img src="{{ url_for('static', filename='images/components/pir_sensor.jpg') }}" alt="PIR Sensor">
+                        <span>PIR Sensor</span>
+                    </div>
+
+                    <div class="card-mini-sat sat-relay" title="5V Optocoupler Relay Module">
+                        <img src="{{ url_for('static', filename='images/components/relay_module.jpg') }}" alt="Relay Module">
+                        <span>5V Relay</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hardware Components Reel -->
+        <div class="mt-5 pt-3 border-top border-white border-opacity-10">
+            <div class="d-flex align-items-center justify-content-between mb-3 text-white-50 small">
+                <span class="d-flex align-items-center"><i class="bi bi-cpu-fill text-success me-2"></i><strong>Verified Hardware Catalog</strong> &bull; 100% Real Physical Components Ready for Reuse</span>
+                <span class="d-none d-md-inline text-muted"><i class="bi bi-shield-check text-success me-1"></i>Tested &bull; Cleaned &bull; Diverted</span>
+            </div>
+            <div class="hardware-reel-container d-flex gap-3">
+                <a href="{{ url_for('components.component_list', search='Arduino Uno') }}" class="hardware-reel-item text-decoration-none">
+                    <img src="{{ url_for('static', filename='images/components/arduino_uno.jpg') }}" class="hardware-reel-img" alt="Arduino Uno">
+                    <div class="text-white small fw-semibold text-truncate">Arduino Uno</div>
+                    <div class="text-success" style="font-size: 0.7rem;">Microcontroller</div>
+                </a>
+                <a href="{{ url_for('components.component_list', search='ESP32') }}" class="hardware-reel-item text-decoration-none">
+                    <img src="{{ url_for('static', filename='images/components/esp32.jpg') }}" class="hardware-reel-img" alt="ESP32">
+                    <div class="text-white small fw-semibold text-truncate">ESP32 DevKit</div>
+                    <div class="text-success" style="font-size: 0.7rem;">IoT Wi-Fi/BLE</div>
+                </a>
+                <a href="{{ url_for('components.component_list', search='Raspberry Pi') }}" class="hardware-reel-item text-decoration-none">
+                    <img src="{{ url_for('static', filename='images/components/raspberry_pi.jpg') }}" class="hardware-reel-img" alt="Raspberry Pi">
+                    <div class="text-white small fw-semibold text-truncate">Raspberry Pi</div>
+                    <div class="text-success" style="font-size: 0.7rem;">Single Board PC</div>
+                </a>
+                <a href="{{ url_for('components.component_list', search='Arduino Nano') }}" class="hardware-reel-item text-decoration-none">
+                    <img src="{{ url_for('static', filename='images/components/arduino_nano.jpg') }}" class="hardware-reel-img" alt="Arduino Nano">
+                    <div class="text-white small fw-semibold text-truncate">Arduino Nano</div>
+                    <div class="text-success" style="font-size: 0.7rem;">Compact MCU</div>
+                </a>
+                <a href="{{ url_for('components.component_list', search='Ultrasonic') }}" class="hardware-reel-item text-decoration-none">
+                    <img src="{{ url_for('static', filename='images/components/ultrasonic_sensor.jpg') }}" class="hardware-reel-img" alt="HC-SR04 Ultrasonic">
+                    <div class="text-white small fw-semibold text-truncate">HC-SR04 Sensor</div>
+                    <div class="text-success" style="font-size: 0.7rem;">Distance Radar</div>
+                </a>
+                <a href="{{ url_for('components.component_list', search='Servo') }}" class="hardware-reel-item text-decoration-none">
+                    <img src="{{ url_for('static', filename='images/components/servo_motor.jpg') }}" class="hardware-reel-img" alt="Servo Motor">
+                    <div class="text-white small fw-semibold text-truncate">Servo Motor</div>
+                    <div class="text-success" style="font-size: 0.7rem;">Precision Angle</div>
+                </a>
+                <a href="{{ url_for('components.component_list', search='DC Motor') }}" class="hardware-reel-item text-decoration-none">
+                    <img src="{{ url_for('static', filename='images/components/dc_motor.jpg') }}" class="hardware-reel-img" alt="DC Motor">
+                    <div class="text-white small fw-semibold text-truncate">DC Gear Motor</div>
+                    <div class="text-success" style="font-size: 0.7rem;">Drive Actuator</div>
+                </a>
+                <a href="{{ url_for('components.component_list', search='Breadboard') }}" class="hardware-reel-item text-decoration-none">
+                    <img src="{{ url_for('static', filename='images/components/breadboard.jpg') }}" class="hardware-reel-img" alt="Breadboard">
+                    <div class="text-white small fw-semibold text-truncate">Breadboard</div>
+                    <div class="text-success" style="font-size: 0.7rem;">830 Tie Points</div>
+                </a>
+                <a href="{{ url_for('components.component_list', search='Display') }}" class="hardware-reel-item text-decoration-none">
+                    <img src="{{ url_for('static', filename='images/components/lcd_display.jpg') }}" class="hardware-reel-img" alt="LCD Display">
+                    <div class="text-white small fw-semibold text-truncate">16x2 LCD / OLED</div>
+                    <div class="text-success" style="font-size: 0.7rem;">Visual Screen</div>
+                </a>
+                <a href="{{ url_for('components.component_list', search='DHT11') }}" class="hardware-reel-item text-decoration-none">
+                    <img src="{{ url_for('static', filename='images/components/dht11.jpg') }}" class="hardware-reel-img" alt="DHT11 Sensor">
+                    <div class="text-white small fw-semibold text-truncate">DHT11 Sensor</div>
+                    <div class="text-success" style="font-size: 0.7rem;">Temp / Humidity</div>
+                </a>
+                <a href="{{ url_for('components.component_list', search='PIR') }}" class="hardware-reel-item text-decoration-none">
+                    <img src="{{ url_for('static', filename='images/components/pir_sensor.jpg') }}" class="hardware-reel-img" alt="PIR Sensor">
+                    <div class="text-white small fw-semibold text-truncate">PIR Motion</div>
+                    <div class="text-success" style="font-size: 0.7rem;">Infrared Radar</div>
+                </a>
+                <a href="{{ url_for('components.component_list', search='LDR') }}" class="hardware-reel-item text-decoration-none">
+                    <img src="{{ url_for('static', filename='images/components/ldr.jpg') }}" class="hardware-reel-img" alt="LDR Sensor">
+                    <div class="text-white small fw-semibold text-truncate">LDR Sensor</div>
+                    <div class="text-success" style="font-size: 0.7rem;">Ambient Light</div>
+                </a>
+                <a href="{{ url_for('components.component_list', search='LED') }}" class="hardware-reel-item text-decoration-none">
+                    <img src="{{ url_for('static', filename='images/components/led.jpg') }}" class="hardware-reel-img" alt="LEDs">
+                    <div class="text-white small fw-semibold text-truncate">LED Pack</div>
+                    <div class="text-success" style="font-size: 0.7rem;">Visual Output</div>
+                </a>
+                <a href="{{ url_for('components.component_list', search='Jumper') }}" class="hardware-reel-item text-decoration-none">
+                    <img src="{{ url_for('static', filename='images/components/jumper_wires.jpg') }}" class="hardware-reel-img" alt="Jumper Wires">
+                    <div class="text-white small fw-semibold text-truncate">Jumper Wires</div>
+                    <div class="text-success" style="font-size: 0.7rem;">Dupont Cables</div>
+                </a>
+                <a href="{{ url_for('components.component_list', search='Relay') }}" class="hardware-reel-item text-decoration-none">
+                    <img src="{{ url_for('static', filename='images/components/relay_module.jpg') }}" class="hardware-reel-img" alt="Relay Module">
+                    <div class="text-white small fw-semibold text-truncate">Relay Module</div>
+                    <div class="text-success" style="font-size: 0.7rem;">Power Switch</div>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     2. ENVIRONMENTAL IMPACT: 4 EQUAL KPI CARDS & CIRCULAR VISUAL
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="section-padding bg-white" id="impactSection">
+    <div class="container">
+        <!-- Section Header -->
+        <div class="text-center mb-5">
+            <span class="section-badge section-badge-emerald">
+                <i class="bi bi-globe-americas"></i> Environmental Impact
+            </span>
+            <h2 class="section-title">Measurable E-Waste Diverted</h2>
+            <p class="section-subtitle">
+                Live telemetry measuring functional electronic hardware saved from scrap heaps and repurposed into active projects.
+            </p>
+        </div>
+
+        <!-- Circular Sustainability Visualization -->
+        <div class="sustainability-cycle-wrapper mb-5">
+            <div class="row align-items-center">
+                <div class="col-lg-5 mb-4 mb-lg-0 text-center text-lg-start ps-lg-4">
+                    <span class="badge bg-success-subtle text-success px-3 py-1 mb-2 font-monospace">CIRCULAR LIFECYCLE</span>
+                    <h3 class="fw-bold text-white mb-3" style="font-family: 'Outfit', sans-serif;">
+                        The Electronics Reusability Loop
+                    </h3>
+                    <p class="text-light opacity-75 small mb-4" style="line-height: 1.7;">
+                        Instead of incinerating circuit boards or dumping toxic heavy metals into soil, SECONDLIFE bridges idle parts directly to makers with automated compatibility calculations.
+                    </p>
+                    <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-lg-start">
+                        <span class="badge bg-dark text-light border border-secondary border-opacity-50 py-2 px-3 small">
+                            <i class="bi bi-shield-check text-success me-1"></i>Toxic Waste Reduction
+                        </span>
+                        <span class="badge bg-dark text-light border border-secondary border-opacity-50 py-2 px-3 small">
+                            <i class="bi bi-lightning-charge text-warning me-1"></i>Resource Conservation
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-lg-7">
+                    <!-- Circular Flow Graphic -->
+                    <div class="cycle-diagram-container">
+                        <div class="d-flex flex-column gap-3">
+                            <!-- Node 1: E-Waste -->
+                            <div class="cycle-node-pill">
+                                <div class="stat-icon-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(239, 68, 68, 0.15); color: #f87171;">
+                                    <i class="bi bi-cpu fs-5"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold text-white small">1. UNUSED ELECTRONICS</div>
+                                    <div style="font-size: 0.8rem; color: #cbd5e1;">Discarded microcontrollers, motors, and sensors listed by users</div>
+                                </div>
+                                <span class="badge bg-danger-subtle text-danger-emphasis small">Input</span>
+                            </div>
+
+                            <!-- Arrow Down -->
+                            <div class="text-center text-success fs-5 py-0 my-n1" style="animation: pulseArrow 2s infinite ease-in-out;">
+                                <i class="bi bi-arrow-down"></i>
+                            </div>
+
+                            <!-- Node 2: Matching -->
+                            <div class="cycle-node-pill" style="border-color: rgba(16, 185, 129, 0.5); background: rgba(16, 185, 129, 0.08);">
+                                <div class="stat-icon-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(16, 185, 129, 0.2); color: #34d399;">
+                                    <i class="bi bi-diagram-3 fs-5"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold text-white small">2. INTELLIGENT MATCHING</div>
+                                    <div style="font-size: 0.8rem; color: #cbd5e1;">Algorithm analyzes inventory and computes project feasibility</div>
+                                </div>
+                                <span class="badge bg-success-subtle text-success-emphasis small">Engine</span>
+                            </div>
+
+                            <!-- Arrow Down -->
+                            <div class="text-center text-success fs-5 py-0 my-n1" style="animation: pulseArrow 2s infinite ease-in-out;">
+                                <i class="bi bi-arrow-down"></i>
+                            </div>
+
+                            <!-- Node 3: New Project & Landfill Diverted -->
+                            <div class="cycle-node-pill">
+                                <div class="stat-icon-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(6, 182, 212, 0.15); color: #22d3ee;">
+                                    <i class="bi bi-box-seam fs-5"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold text-white small">3. NEW REUSE PROJECT</div>
+                                    <div style="font-size: 0.8rem; color: #cbd5e1;">Assembled hardware active in real world &bull; E-waste permanently averted</div>
+                                </div>
+                                <span class="badge bg-info-subtle text-info-emphasis small">Zero Waste</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4 Equal KPI Cards Grid (Real Backend Data) -->
+        <div class="row g-4">
+            <!-- KPI 1: E-Waste Diverted -->
+            <div class="col-sm-6 col-lg-3">
+                <div class="kpi-stat-card card-hover card-3d-tilt">
+                    <div class="kpi-icon-wrap" style="background: rgba(16, 185, 129, 0.12); color: #059669;">
+                        <i class="bi bi-recycle"></i>
+                    </div>
+                    <div class="kpi-number text-success" id="statWaste">{{ format_weight(total_waste) }}</div>
+                    <div class="kpi-label">E-Waste Reduced</div>
+                </div>
+            </div>
+
+            <!-- KPI 2: Components Available -->
+            <div class="col-sm-6 col-lg-3">
+                <div class="kpi-stat-card card-hover card-3d-tilt">
+                    <div class="kpi-icon-wrap" style="background: rgba(20, 184, 166, 0.12); color: #0d9488;">
+                        <i class="bi bi-cpu"></i>
+                    </div>
+                    <div class="kpi-number" id="statComponents">{{ total_components }}</div>
+                    <div class="kpi-label">Components Listed</div>
+                </div>
+            </div>
+
+            <!-- KPI 3: Reuse Projects -->
+            <div class="col-sm-6 col-lg-3">
+                <div class="kpi-stat-card card-hover card-3d-tilt">
+                    <div class="kpi-icon-wrap" style="background: rgba(6, 182, 212, 0.12); color: #0891b2;">
+                        <i class="bi bi-lightbulb"></i>
+                    </div>
+                    <div class="kpi-number" id="statProjects">{{ total_projects }}</div>
+                    <div class="kpi-label">Reuse Projects</div>
+                </div>
+            </div>
+
+            <!-- KPI 4: Projects Completed -->
+            <div class="col-sm-6 col-lg-3">
+                <div class="kpi-stat-card card-hover card-3d-tilt">
+                    <div class="kpi-icon-wrap" style="background: rgba(245, 158, 11, 0.12); color: #d97706;">
+                        <i class="bi bi-check2-circle"></i>
+                    </div>
+                    <div class="kpi-number" id="statReuses">{{ total_reuses }}</div>
+                    <div class="kpi-label">Successful Reuses</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     3. HOW SECONDLIFE WORKS: 4 STEPS CONNECTED WORKFLOW
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="section-padding" style="background: #f8fafc;" id="howItWorks">
+    <div class="container">
+        <!-- Section Header -->
+        <div class="text-center mb-5">
+            <span class="section-badge section-badge-cyan">
+                <i class="bi bi-diagram-3"></i> Four Simple Steps
+            </span>
+            <h2 class="section-title">How SECONDLIFE Works</h2>
+            <p class="section-subtitle">
+                An automated lifecycle designed to turn surplus electronic components into functional open-source builds.
+            </p>
+        </div>
+
+        <!-- 4 Step Cards Grid -->
+        <div class="row g-4">
+            <!-- Step 1 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="step-card-modern card-3d-tilt">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="step-num-badge" style="background: rgba(16, 185, 129, 0.12); color: #059669;">01 LIST</span>
+                        <i class="bi bi-plus-circle text-success fs-4"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2" style="font-family: 'Outfit', sans-serif;">List Electronics</h5>
+                    <p class="text-muted small mb-0" style="line-height: 1.65;">
+                        Catalog your spare boards, sensors, and cables into your private digital inventory in seconds.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="step-card-modern card-3d-tilt">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="step-num-badge" style="background: rgba(20, 184, 166, 0.12); color: #0d9488;">02 DISCOVER</span>
+                        <i class="bi bi-search text-teal fs-4" style="color: #0d9488;"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2" style="font-family: 'Outfit', sans-serif;">Discover Projects</h5>
+                    <p class="text-muted small mb-0" style="line-height: 1.65;">
+                        Explore curated electronics blueprints across IoT, Automation, Robotics, and Smart Home categories.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="step-card-modern card-3d-tilt">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="step-num-badge" style="background: rgba(6, 182, 212, 0.12); color: #0891b2;">03 MATCH</span>
+                        <i class="bi bi-diagram-3 text-cyan fs-4" style="color: #0891b2;"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2" style="font-family: 'Outfit', sans-serif;">Smart Matching</h5>
+                    <p class="text-muted small mb-0" style="line-height: 1.65;">
+                        Our engine computes exact compatibility percentages and highlights which components you already own.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="col-md-6 col-lg-3">
+                <div class="step-card-modern card-3d-tilt">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="step-num-badge" style="background: rgba(52, 211, 153, 0.15); color: #059669;">04 REUSE</span>
+                        <i class="bi bi-recycle text-success fs-4"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2" style="font-family: 'Outfit', sans-serif;">Build & Divert</h5>
+                    <p class="text-muted small mb-0" style="line-height: 1.65;">
+                        Assemble your build, mark it as completed, and track your verified e-waste diverted metrics.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     4. FEATURED COMPONENTS: SALVAGED HARDWARE PREVIEW
+     ═══════════════════════════════════════════════════════════════════ -->
+{% if featured_components %}
+<section class="section-padding" style="background: #f0fdf4;" id="featuredComponents">
+    <div class="container">
+        <!-- Section Header -->
+        <div class="d-flex flex-wrap justify-content-between align-items-end mb-5">
+            <div>
+                <span class="section-badge section-badge-emerald">
+                    <i class="bi bi-cpu"></i> Available Hardware
+                </span>
+                <h2 class="section-title mb-1">Components Ready for a Second Life</h2>
+                <p class="text-muted mb-0">Live catalog of user-listed electronic modules ready for assembly</p>
+            </div>
+            <div class="mt-3 mt-md-0">
+                <a href="{{ url_for('components.component_list') }}" class="btn btn-outline-primary fw-semibold px-4">
+                    View All Components <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Components Grid -->
+        <div class="row g-4">
+            {% for comp in featured_components %}
+            <div class="col-sm-6 col-lg-3">
+                <div class="card h-100 card-hover card-3d-tilt bg-white border-0 shadow-sm" style="border-radius: 18px; border: 1px solid rgba(226, 232, 240, 0.9) !important; overflow: hidden;">
+                    <div class="comp-img-wrapper" style="height: 175px;">
+                        <img src="{{ url_for('static', filename=get_component_image(comp)) }}" 
+                             class="comp-img-product" 
+                             alt="{{ comp.name }}"
+                             loading="lazy"
+                             onerror="this.onerror=null; this.src='{{ url_for('static', filename='images/components/default.jpg') }}';">
+                    </div>
+
+                    <div class="card-body p-3 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-light text-muted border small">{{ comp.category }}</span>
+                            <span class="badge {% if comp.condition == 'New' %}bg-success-subtle text-success-emphasis{% elif comp.condition == 'Good' %}bg-info-subtle text-info-emphasis{% else %}bg-warning-subtle text-warning-emphasis{% endif %} small">
+                                {{ comp.condition }}
+                            </span>
+                        </div>
+
+                        <h6 class="fw-bold mb-2">
+                            <a href="{{ url_for('components.component_detail', component_id=comp.id) }}" class="text-decoration-none text-dark text-truncate d-block">
+                                {{ comp.name }}
+                            </a>
+                        </h6>
+
+                        <div class="d-flex justify-content-between small text-muted mt-auto pt-3 border-top">
+                            <span><i class="bi bi-boxes me-1 text-primary"></i>Qty: <strong>{{ comp.quantity }}</strong></span>
+                            <span class="text-success"><i class="bi bi-leaf me-1"></i>{{ format_weight(comp.estimated_weight) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     5. FEATURED PROJECTS: BUILD SOMETHING NEW (DARK TECH SECTION)
+     ═══════════════════════════════════════════════════════════════════ -->
+{% if featured_projects %}
+<section class="section-padding" style="background: linear-gradient(180deg, #09121d 0%, #0c1b27 100%); color: #ffffff;" id="featuredProjects">
+    <div class="container">
+        <!-- Section Header -->
+        <div class="d-flex flex-wrap justify-content-between align-items-end mb-5">
+            <div>
+                <span class="section-badge section-badge-dark">
+                    <i class="bi bi-stars"></i> Curated Blueprints
+                </span>
+                <h2 class="section-title section-title-white mb-1">Build Something New</h2>
+                <p class="section-subtitle-white mb-0">Practical electronic builds with schematic requirements and automated parts matching</p>
+            </div>
+            <div class="mt-3 mt-md-0">
+                <a href="{{ url_for('projects.project_list') }}" class="btn btn-accent fw-semibold px-4">
+                    Explore All Projects <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Projects Grid -->
+        <div class="row g-4">
+            {% for project in featured_projects %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 card-hover card-3d-tilt border-0 shadow" style="background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(14px); border: 1px solid rgba(52, 211, 153, 0.25) !important; border-radius: 20px; overflow: hidden;">
+                    <div class="position-relative" style="height: 180px; overflow: hidden; background-color: #0f172a; border-bottom: 1px solid rgba(52, 211, 153, 0.2);">
+                        <img src="{{ url_for('static', filename=get_project_image(project)) }}" class="card-img-top w-100 h-100" style="object-fit: cover; transition: transform 0.4s ease;" alt="{{ project.title }}" onerror="this.src='{{ url_for('static', filename='images/projects/default.jpg') }}';">
+                    </div>
+
+
+                    <div class="card-body p-4 d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-dark text-light border border-secondary border-opacity-50 small">{{ project.category }}</span>
+                            <span class="badge {% if project.difficulty == 'Beginner' %}bg-success-subtle text-success{% elif project.difficulty == 'Intermediate' %}bg-warning-subtle text-warning{% else %}bg-danger-subtle text-danger{% endif %} small">
+                                <i class="bi bi-speedometer2 me-1"></i>{{ project.difficulty }}
+                            </span>
+                        </div>
+
+                        <h5 class="fw-bold mb-2">
+                            <a href="{{ url_for('projects.project_detail', project_id=project.id) }}" class="text-decoration-none text-white">
+                                {{ project.title }}
+                            </a>
+                        </h5>
+
+                        <p class="text-light opacity-75 small mb-3" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:38px;line-height:1.6;">
+                            {{ project.description }}
+                        </p>
+
+                        <div class="mt-auto pt-3 border-top border-secondary border-opacity-25 d-flex justify-content-between align-items-center">
+                            <span class="text-success small fw-semibold">
+                                <i class="bi bi-leaf me-1"></i>{{ format_weight(project.estimated_waste_reduction) }} Saved
+                            </span>
+                            <a href="{{ url_for('projects.project_detail', project_id=project.id) }}" class="btn btn-sm btn-primary px-3">
+                                View Blueprint <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     6. HIGH-CONTRAST CTA SECTION: DARK EMERALD GRADIENT CARD
+     ═══════════════════════════════════════════════════════════════════ -->
+<section class="section-padding bg-white">
+    <div class="container">
+        <div class="cta-card-wrapper text-center text-white position-relative">
+            <div class="position-relative" style="z-index: 2; max-width: 680px; margin: 0 auto;">
+                <div class="d-inline-flex p-3 rounded-circle mb-3" style="background: rgba(52, 211, 153, 0.15); border: 1px solid rgba(52, 211, 153, 0.4); box-shadow: 0 0 25px rgba(16, 185, 129, 0.35);">
+                    <i class="bi bi-cpu-fill text-success fs-1"></i>
+                </div>
+                <h2 class="fw-bold mb-3" style="font-family: 'Outfit', sans-serif; font-size: 2.8rem; letter-spacing: -0.8px;">
+                    Have Unused Electronics?
+                </h2>
+                <p class="mb-4 lead" style="color: #d1fae5; font-size: 1.15rem; line-height: 1.7;">
+                    Don't let useful electronics become electronic waste. Transform your spare boards, sensors, and motors into practical sustainability projects.
+                </p>
+                <div class="d-flex flex-wrap gap-3 justify-content-center">
+                    {% if session.get('user_id') %}
+                    <a href="{{ url_for('components.add_component') }}" class="btn btn-accent btn-lg px-5 shadow-lg">
+                        <i class="bi bi-plus-circle me-2"></i>List Your Components
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-accent btn-lg px-5 shadow-lg">
+                        <i class="bi bi-person-plus me-2"></i>Join SECONDLIFE Today
+                    </a>
+                    <a href="{{ url_for('projects.project_list') }}" class="btn btn-outline-light btn-lg px-4">
+                        <i class="bi bi-search me-1"></i>Explore Projects
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+

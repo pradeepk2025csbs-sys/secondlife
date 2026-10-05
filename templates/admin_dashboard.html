@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Admin Navigation Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-shield-lock text-danger me-2"></i>Admin Dashboard
+            </h2>
+            <p class="text-muted mb-0">Platform overview, system analytics, and management controls</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ url_for('admin.admin_users') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-people me-1"></i>Users
+            </a>
+            <a href="{{ url_for('admin.admin_components') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-cpu me-1"></i>Components
+            </a>
+            <a href="{{ url_for('admin.admin_projects') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-lightbulb me-1"></i>Projects
+            </a>
+            <a href="{{ url_for('admin.admin_add_project') }}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle me-1"></i>Add New Project
+            </a>
+        </div>
+    </div>
+
+    <!-- Platform Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm text-center p-3 h-100 bg-white">
+                <div class="stat-icon-sm bg-primary-subtle text-primary mx-auto mb-2">
+                    <i class="bi bi-people"></i>
+                </div>
+                <div class="fs-4 fw-bold">{{ total_users }}</div>
+                <div class="text-muted small">Total Users</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm text-center p-3 h-100 bg-white">
+                <div class="stat-icon-sm bg-info-subtle text-info mx-auto mb-2">
+                    <i class="bi bi-cpu"></i>
+                </div>
+                <div class="fs-4 fw-bold">{{ total_components }}</div>
+                <div class="text-muted small">Components</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm text-center p-3 h-100 bg-white">
+                <div class="stat-icon-sm bg-warning-subtle text-warning mx-auto mb-2">
+                    <i class="bi bi-lightbulb"></i>
+                </div>
+                <div class="fs-4 fw-bold">{{ total_projects }}</div>
+                <div class="text-muted small">Projects</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm text-center p-3 h-100 bg-white">
+                <div class="stat-icon-sm bg-secondary-subtle text-secondary mx-auto mb-2">
+                    <i class="bi bi-diagram-3"></i>
+                </div>
+                <div class="fs-4 fw-bold">{{ total_matches }}</div>
+                <div class="text-muted small">Saved Matches</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm text-center p-3 h-100 bg-white">
+                <div class="stat-icon-sm bg-success-subtle text-success mx-auto mb-2">
+                    <i class="bi bi-arrow-repeat"></i>
+                </div>
+                <div class="fs-4 fw-bold">{{ platform_stats.total_components_reused }}</div>
+                <div class="text-muted small">Reused Parts</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm text-center p-3 h-100 bg-white">
+                <div class="stat-icon-sm bg-success text-white mx-auto mb-2">
+                    <i class="bi bi-leaf"></i>
+                </div>
+                <div class="fs-5 fw-bold text-success">{{ platform_stats.formatted_waste }}</div>
+                <div class="text-muted small">E-Waste Diverted</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="row g-4 mb-4">
+        <!-- Component Categories Doughnut Chart -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-pie-chart text-primary me-2"></i>Components by Category</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="adminCategoryChart" height="220"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Component Condition Distribution -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 pt-3">
+                    <h6 class="fw-bold mb-0"><i class="bi bi-bar-chart text-success me-2"></i>Component Condition & Status</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="adminConditionChart" height="220"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Users Table -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 pt-4 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0"><i class="bi bi-person-lines-fill text-secondary me-2"></i>Recently Registered Users</h5>
+            <a href="{{ url_for('admin.admin_users') }}" class="btn btn-sm btn-outline-primary">View All Users</a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">User</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Components</th>
+                            <th>Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in recent_users %}
+                        <tr>
+                            <td class="ps-4 fw-semibold">{{ u.name }}</td>
+                            <td class="text-muted">{{ u.email }}</td>
+                            <td>
+                                <span class="badge {% if u.role == 'admin' %}bg-danger-subtle text-danger-emphasis{% else %}bg-primary-subtle text-primary-emphasis{% endif %}">
+                                    {{ u.role }}
+                                </span>
+                            </td>
+                            <td><span class="badge bg-light text-dark border">{{ u.components|length }}</span></td>
+                            <td class="text-muted small">{{ u.created_at.strftime('%b %d, %Y') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Categories Chart
+    const catData = {{ categories | tojson }};
+    const catLabels = Object.keys(catData);
+    const catValues = Object.values(catData);
+    const palette = ['#10b981', '#065f46', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#14b8a6', '#64748b'];
+
+    new Chart(document.getElementById('adminCategoryChart'), {
+        type: 'doughnut',
+        data: {
+            labels: catLabels,
+            datasets: [{
+                data: catValues,
+                backgroundColor: palette.slice(0, catLabels.length),
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'right' }
+            },
+            cutout: '60%'
+        }
+    });
+
+    // Conditions Chart
+    const condData = {{ conditions | tojson }};
+    const condLabels = Object.keys(condData);
+    const condValues = Object.values(condData);
+
+    new Chart(document.getElementById('adminConditionChart'), {
+        type: 'bar',
+        data: {
+            labels: condLabels,
+            datasets: [{
+                label: 'Components in condition',
+                data: condValues,
+                backgroundColor: '#059669',
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { precision: 0 } }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

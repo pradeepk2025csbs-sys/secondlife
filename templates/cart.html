@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+{% block title %}Shopping Cart{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-md-5">
+    <!-- Breadcrumb & Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{{ url_for('home') }}" class="text-decoration-none">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('components.component_list') }}" class="text-decoration-none">Components</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Cart</li>
+                </ol>
+            </nav>
+            <h1 class="h3 fw-bold mb-0 text-dark">
+                <span class="me-2">🛒</span>Your Hardware Cart
+            </h1>
+        </div>
+        <a href="{{ url_for('components.component_list') }}" class="btn btn-outline-secondary btn-sm mt-2 mt-md-0">
+            <i class="bi bi-arrow-left me-1"></i>Continue Shopping
+        </a>
+    </div>
+
+    {% if items %}
+    <div class="row g-4">
+        <!-- Cart Items List -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 16px;">
+                <div class="card-header bg-white py-3 px-4 border-bottom d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold mb-0 text-dark">Cart Items ({{ items|length }})</h6>
+                    <span class="text-muted small">Prices verified from live database</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light small text-muted text-uppercase">
+                            <tr>
+                                <th class="ps-4 py-3" style="width: 45%;">Component</th>
+                                <th class="py-3 text-center" style="width: 20%;">Quantity</th>
+                                <th class="py-3 text-end" style="width: 15%;">Unit Price</th>
+                                <th class="py-3 text-end" style="width: 15%;">Subtotal</th>
+                                <th class="pe-4 py-3 text-center" style="width: 5%;"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            {% set comp = item.component %}
+                            <tr>
+                                <td class="ps-4 py-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="comp-cart-thumb me-3 rounded-3 d-flex align-items-center justify-content-center p-1 border bg-light" style="width: 60px; height: 60px; flex-shrink: 0; overflow: hidden;">
+                                            <img src="{{ url_for('static', filename=get_component_image(comp)) }}" 
+                                                 alt="{{ comp.name }}" 
+                                                 style="max-width: 100%; max-height: 100%; object-fit: contain;"
+                                                 onerror="this.src='{{ url_for('static', filename='images/components/default.jpg') }}';">
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-0">
+                                                <a href="{{ url_for('components.component_detail', component_id=comp.id) }}" class="text-decoration-none text-dark">
+                                                    {{ comp.name }}
+                                                </a>
+                                            </h6>
+                                            <span class="badge bg-light text-muted border small mt-1">{{ comp.category }}</span>
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle small ms-1">{{ comp.condition }}</span>
+                                            <div class="text-muted small mt-1" style="font-size: 0.75rem;">
+                                                Stock available: {{ comp.quantity }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 text-center">
+                                    <!-- Quantity Controls [-] Qty [+] -->
+                                    <div class="d-inline-flex align-items-center border rounded-2 p-1 bg-white">
+                                        <form action="{{ url_for('marketplace.update_cart_item', item_id=item.id) }}" method="POST" class="d-inline">
+                                            <input type="hidden" name="action" value="decrease">
+                                            <button type="submit" class="btn btn-sm btn-link text-dark p-0 px-2 text-decoration-none fw-bold" title="Decrease Quantity">-</button>
+                                        </form>
+                                        <span class="px-2 fw-bold small">{{ item.quantity }}</span>
+                                        <form action="{{ url_for('marketplace.update_cart_item', item_id=item.id) }}" method="POST" class="d-inline">
+                                            <input type="hidden" name="action" value="increase">
+                                            <button type="submit" class="btn btn-sm btn-link text-dark p-0 px-2 text-decoration-none fw-bold" {% if item.quantity >= comp.quantity %}disabled{% endif %} title="Increase Quantity">+</button>
+                                        </form>
+                                    </div>
+                                    {% if item.quantity >= comp.quantity %}
+                                    <div class="text-warning small mt-1" style="font-size: 0.7rem;">Max in stock</div>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 text-end fw-semibold text-muted">
+                                    {{ format_currency(comp.price) }}
+                                </td>
+                                <td class="py-3 text-end fw-bold text-success fs-6" style="font-family: 'Outfit', sans-serif;">
+                                    {{ format_currency(item.subtotal) }}
+                                </td>
+                                <td class="pe-4 py-3 text-center">
+                                    <form action="{{ url_for('marketplace.remove_from_cart', item_id=item.id) }}" method="POST">
+                                        <button type="submit" class="btn btn-sm text-danger border-0 p-1" title="Remove item" onclick="return confirm('Remove {{ comp.name }} from cart?');">
+                                            <i class="bi bi-trash3 fs-6"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-footer bg-light py-3 px-4 d-flex justify-content-between align-items-center border-top">
+                    <span class="text-muted small">
+                        <i class="bi bi-recycle text-success me-1"></i>Every purchase directly prevents e-waste from entering landfills.
+                    </span>
+                    <a href="{{ url_for('components.component_list') }}" class="btn btn-link text-decoration-none btn-sm">
+                        <i class="bi bi-plus-circle me-1"></i>Add More Components
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Summary Card -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm sticky-top" style="top: 90px; border-radius: 16px;">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3 text-dark">Order Summary</h5>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Subtotal ({{ items|length }} items)</span>
+                        <span class="fw-semibold text-dark">{{ format_currency(subtotal) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Delivery Charges</span>
+                        <span class="text-success fw-bold">FREE <span class="badge bg-success-subtle text-success small ms-1">Demo</span></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3 pb-3 border-bottom">
+                        <span class="text-muted">Platform Eco Subsidy</span>
+                        <span class="text-success fw-bold">-₹0</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-baseline mb-4">
+                        <span class="fw-bold fs-5 text-dark">Total Amount</span>
+                        <span class="fw-bold fs-3 text-success" style="font-family: 'Outfit', sans-serif;">{{ format_currency(total) }}</span>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('marketplace.checkout') }}" class="btn btn-success btn-lg fw-bold py-3 text-white shadow-sm d-flex align-items-center justify-content-center">
+                            <span>Proceed to Checkout</span>
+                            <i class="bi bi-arrow-right ms-2"></i>
+                        </a>
+                        <a href="{{ url_for('components.component_list') }}" class="btn btn-outline-secondary py-2">
+                            Continue Shopping
+                        </a>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top text-center text-muted small">
+                        <i class="bi bi-shield-check text-success me-1"></i>
+                        Secure simulated checkout with zero actual monetary charges.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Empty Cart State -->
+    <div class="card border-0 shadow-sm py-5 text-center my-4" style="border-radius: 16px;">
+        <div class="card-body py-5">
+            <div class="display-1 text-muted mb-3">🛒</div>
+            <h3 class="fw-bold text-dark mb-2">Your Cart is Empty</h3>
+            <p class="text-muted mb-4 mx-auto" style="max-width: 480px;">
+                You haven't added any electronic components to your cart yet. Explore our marketplace to find reusable microcontrollers, sensors, and motors!
+            </p>
+            <a href="{{ url_for('components.component_list') }}" class="btn btn-success btn-lg px-4 py-2 text-white fw-bold shadow-sm">
+                <i class="bi bi-cpu me-2"></i>Browse Component Marketplace
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

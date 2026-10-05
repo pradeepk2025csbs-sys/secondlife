@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Manage Projects - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-outline-secondary btn-sm mb-2">
+                <i class="bi bi-arrow-left me-1"></i>Back to Admin
+            </a>
+            <h2 class="fw-bold mb-0">
+                <i class="bi bi-lightbulb text-warning me-2"></i>Project Management
+            </h2>
+        </div>
+        <div class="d-flex gap-2">
+            <span class="badge bg-secondary fs-6 d-flex align-items-center">Total: {{ projects|length }}</span>
+            <a href="{{ url_for('admin.admin_add_project') }}" class="btn btn-primary btn-sm">
+                <i class="bi bi-plus-circle me-1"></i>Add New Project
+            </a>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Project Title</th>
+                            <th>Category</th>
+                            <th>Difficulty</th>
+                            <th>Est. Cost</th>
+                            <th>Waste Reduction</th>
+                            <th>Required Components</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in projects %}
+                        <tr>
+                            <td class="ps-4 text-muted">#{{ p.id }}</td>
+                            <td class="fw-semibold">
+                                <a href="{{ url_for('projects.project_detail', project_id=p.id) }}" class="text-decoration-none text-dark">
+                                    {{ p.title }}
+                                </a>
+                            </td>
+                            <td><span class="badge bg-light text-dark border">{{ p.category }}</span></td>
+                            <td>
+                                <span class="badge {% if p.difficulty == 'Beginner' %}bg-success-subtle text-success-emphasis{% elif p.difficulty == 'Intermediate' %}bg-warning-subtle text-warning-emphasis{% else %}bg-danger-subtle text-danger-emphasis{% endif %}">
+                                    {{ p.difficulty }}
+                                </span>
+                            </td>
+                            <td class="small">₹{{ p.estimated_cost|int }}</td>
+                            <td class="small text-success fw-bold">{{ format_weight(p.estimated_waste_reduction) }}</td>
+                            <td><span class="badge bg-info-subtle text-info-emphasis">{{ p.required_components|length }} parts</span></td>
+                            <td class="text-end pe-4">
+                                <div class="d-flex justify-content-end gap-1">
+                                    <a href="{{ url_for('admin.admin_edit_project', project_id=p.id) }}" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('admin.admin_delete_project', project_id=p.id) }}" onsubmit="return confirm('Delete this project and all its component requirements?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

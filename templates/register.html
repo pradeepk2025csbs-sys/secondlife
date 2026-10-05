@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Create Account - SECONDLIFE{% endblock %}
+
+{% block content %}
+<div class="auth-split-wrapper">
+    <div class="card auth-split-card border-0">
+        <div class="row g-0">
+            <!-- Left Branding & 3D Circuit Panel -->
+            <div class="col-lg-5 auth-visual-panel d-none d-lg-flex flex-column justify-content-between">
+                <div class="auth-visual-pattern"></div>
+                <div class="position-relative z-1">
+                    <div class="d-flex align-items-center mb-4">
+                        <i class="bi bi-recycle brand-icon me-2 text-success fs-3"></i>
+                        <span class="fs-4 fw-bold text-white">SECOND<span class="brand-accent">LIFE</span></span>
+                    </div>
+                    <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle px-3 py-1 mb-2">
+                        Sustainable Electronics Movement
+                    </span>
+                    <h3 class="fw-bold text-white mt-2">Join SECONDLIFE</h3>
+                    <p class="text-light opacity-75 small">
+                        Every microcontroller, sensor, and motor you catalog keeps dangerous pollutants out of landfills and sparks new hands-on inventions.
+                    </p>
+                </div>
+
+                <div class="position-relative z-1 text-center my-3">
+                    <div class="auth-circuit-art">
+                        <i class="bi bi-lightning-charge"></i>
+                    </div>
+                </div>
+
+                <div class="position-relative z-1 d-flex justify-content-between small text-light opacity-75 pt-3 border-top border-light border-opacity-10">
+                    <span><i class="bi bi-cpu text-info me-1"></i>List Parts</span>
+                    <span><i class="bi bi-lightbulb text-warning me-1"></i>Build Projects</span>
+                    <span><i class="bi bi-trophy text-success me-1"></i>Earn Impact</span>
+                </div>
+            </div>
+
+            <!-- Right Form Panel -->
+            <div class="col-lg-7 p-4 p-md-5 d-flex flex-column justify-content-center bg-white">
+                <div class="mb-4">
+                    <h3 class="fw-bold text-dark mb-1">Create an Account</h3>
+                    <p class="text-muted small">Start cataloging your components and reducing e-waste</p>
+                </div>
+
+                <form method="POST" action="{{ url_for('auth.register') }}" id="registerForm">
+                    <div class="mb-3">
+                        <label for="name" class="form-label fw-semibold small text-muted">Full Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-muted"></i></span>
+                            <input type="text" class="form-control bg-light border-start-0 py-2" id="name" name="name"
+                                   value="{{ name if name else '' }}"
+                                   placeholder="Your full name" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label fw-semibold small text-muted">Email Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+                            <input type="email" class="form-control bg-light border-start-0 py-2" id="email" name="email"
+                                   value="{{ email if email else '' }}"
+                                   placeholder="you@example.com" required>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-4">
+                        <div class="col-sm-6">
+                            <label for="password" class="form-label fw-semibold small text-muted">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-muted"></i></span>
+                                <input type="password" class="form-control bg-light border-start-0 py-2" id="password" name="password"
+                                       placeholder="At least 6 chars" required minlength="6">
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="confirm_password" class="form-label fw-semibold small text-muted">Confirm Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock-fill text-muted"></i></span>
+                                <input type="password" class="form-control bg-light border-start-0 py-2" id="confirm_password" name="confirm_password"
+                                       placeholder="Re-enter password" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 py-2 fs-6 shadow-sm" id="registerBtn">
+                        <i class="bi bi-person-plus me-2"></i>Create Account
+                    </button>
+                </form>
+
+                <div class="text-center mt-4 pt-2 border-top">
+                    <p class="text-muted small mb-0">
+                        Already have an account?
+                        <a href="{{ url_for('auth.login') }}" class="text-success fw-bold text-decoration-none">Sign In</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

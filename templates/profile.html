@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+{% block title %}User Profile - {{ user.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-md-5">
+    <div class="row g-4">
+        <!-- Sidebar / User Overview -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm text-center p-4 mb-4" style="border-radius: 16px;">
+                <div class="stat-icon bg-primary-subtle text-primary mx-auto mb-3" style="width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">
+                    <i class="bi bi-person"></i>
+                </div>
+                <h4 class="fw-bold mb-1 text-dark">{{ user.name }}</h4>
+                <p class="text-muted small mb-2">{{ user.email }}</p>
+                <div class="d-flex justify-content-center gap-2 mb-3">
+                    <span class="badge {% if user.role == 'admin' %}bg-danger-subtle text-danger border border-danger-subtle{% else %}bg-success-subtle text-success border border-success-subtle{% endif %} px-3 py-1">
+                        {{ user.role|upper }}
+                    </span>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1">
+                        Buyer & Seller
+                    </span>
+                </div>
+                <p class="text-muted small mb-0">
+                    <i class="bi bi-calendar-event me-1"></i>Member since {{ user.created_at.strftime('%B %Y') }}
+                </p>
+            </div>
+
+            <!-- Quick Action Links -->
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 16px;">
+                <div class="card-header bg-white border-0 pt-3 px-4 pb-1">
+                    <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-grid text-primary me-2"></i>Marketplace Hub</h6>
+                </div>
+                <div class="list-group list-group-flush p-2">
+                    <a href="{{ url_for('components.my_listings') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 border-0 py-2 mb-1">
+                        <span><i class="bi bi-shop me-2 text-success"></i>My Listings</span>
+                        <span class="badge bg-light text-dark border">{{ my_listings|length }}</span>
+                    </a>
+                    <a href="{{ url_for('marketplace.my_sales') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 border-0 py-2 mb-1">
+                        <span><i class="bi bi-cash-stack me-2 text-primary"></i>My Sales</span>
+                        <span class="badge bg-light text-dark border">{{ my_sales_items|length }}</span>
+                    </a>
+                    <a href="{{ url_for('marketplace.my_orders') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 border-0 py-2 mb-1">
+                        <span><i class="bi bi-bag-check me-2 text-info"></i>My Purchases</span>
+                        <span class="badge bg-light text-dark border">{{ my_purchases|length }}</span>
+                    </a>
+                    <a href="{{ url_for('components.my_inventory') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 border-0 py-2 mb-1">
+                        <span><i class="bi bi-box-seam me-2 text-warning"></i>My Components (Inventory)</span>
+                        <span class="badge bg-light text-dark border">{{ my_inventory_items|length }}</span>
+                    </a>
+                    <a href="{{ url_for('projects.saved_projects') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center rounded-3 border-0 py-2 mb-1">
+                        <span><i class="bi bi-bookmark me-2 text-secondary"></i>Saved Projects</span>
+                        <span class="badge bg-light text-dark border">{{ my_saved_projects|length }}</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Environmental Impact summary -->
+            <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+                <div class="card-header bg-white border-0 pt-3 px-4 pb-1">
+                    <h6 class="fw-bold mb-0 text-success"><i class="bi bi-tree text-success me-2"></i>Environmental Impact</h6>
+                </div>
+                <div class="card-body px-4 py-3">
+                    <div class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted small">Components Listed</span>
+                        <span class="fw-bold">{{ my_listings|length }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted small">Hardware Reused</span>
+                        <span class="fw-bold">{{ user.reuse_history|length }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2">
+                        <span class="text-muted small">Total Diverted</span>
+                        <span class="fw-bold text-success">{{ format_weight(user.reuse_history | sum(attribute='waste_reduced')) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area: Tabs -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+                <div class="card-header bg-white border-0 pt-3 px-4 pb-0">
+                    <ul class="nav nav-tabs card-header-tabs" id="profileTabs" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active fw-semibold" id="purchases-tab" data-bs-toggle="tab" data-bs-target="#purchases-content" type="button" role="tab">
+                                <i class="bi bi-bag-check me-1"></i>My Purchases ({{ my_purchases|length }})
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link fw-semibold" id="listings-tab" data-bs-toggle="tab" data-bs-target="#listings-content" type="button" role="tab">
+                                <i class="bi bi-shop me-1"></i>My Listings ({{ my_listings|length }})
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link fw-semibold" id="sales-tab" data-bs-toggle="tab" data-bs-target="#sales-content" type="button" role="tab">
+                                <i class="bi bi-cash-stack me-1"></i>My Sales ({{ my_sales_items|length }})
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link fw-semibold" id="inventory-tab" data-bs-toggle="tab" data-bs-target="#inventory-content" type="button" role="tab">
+                                <i class="bi bi-box-seam me-1"></i>My Components ({{ my_inventory_items|length }})
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link fw-semibold" id="saved-tab" data-bs-toggle="tab" data-bs-target="#saved-content" type="button" role="tab">
+                                <i class="bi bi-bookmark me-1"></i>Saved ({{ my_saved_projects|length }})
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link fw-semibold" id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings-content" type="button" role="tab">
+                                <i class="bi bi-gear me-1"></i>Settings
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card-body p-4">
+                    <div class="tab-content" id="profileTabsContent">
+                        
+                        <!-- TAB 1: MY PURCHASES -->
+                        <div class="tab-pane fade show active" id="purchases-content" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold text-dark mb-0">Hardware Purchases History</h6>
+                                <a href="{{ url_for('marketplace.my_orders') }}" class="btn btn-outline-primary btn-sm">Full View</a>
+                            </div>
+                            {% if my_purchases %}
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light small text-muted text-uppercase">
+                                        <tr>
+                                            <th>Order #</th>
+                                            <th>Date</th>
+                                            <th>Items</th>
+                                            <th>Amount</th>
+                                            <th>Payment</th>
+                                            <th>Status</th>
+                                            <th class="text-end">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for o in my_purchases[:6] %}
+                                        <tr>
+                                            <td class="fw-bold">#{{ o.order_number }}</td>
+                                            <td class="small text-muted">{{ o.created_at.strftime('%b %d, %Y') }}</td>
+                                            <td class="small">{{ o.items|length }} item(s)</td>
+                                            <td class="fw-bold text-success" style="font-family: 'Outfit', sans-serif;">{{ format_currency(o.total_amount) }}</td>
+                                            <td>
+                                                <span class="badge {% if o.payment_status == 'Paid' %}bg-success-subtle text-success border border-success-subtle{% else %}bg-warning-subtle text-warning border border-warning-subtle{% endif %}">
+                                                    {{ o.payment_status }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-light text-dark border">{{ o.status }}</span>
+                                            </td>
+                                            <td class="text-end">
+                                                <a href="{{ url_for('marketplace.order_detail', order_id=o.id) }}" class="btn btn-sm btn-outline-primary">Details</a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-bag-x fs-1 d-block mb-2"></i>
+                                <p class="mb-2">You haven't bought any components yet.</p>
+                                <a href="{{ url_for('components.component_list') }}" class="btn btn-sm btn-outline-success">Browse Marketplace</a>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- TAB 2: MY LISTINGS -->
+                        <div class="tab-pane fade" id="listings-content" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold text-dark mb-0">My Marketplace Listings</h6>
+                                <div class="d-flex gap-2">
+                                    <a href="{{ url_for('components.add_component') }}" class="btn btn-success btn-sm text-white"><i class="bi bi-plus me-1"></i>Sell Component</a>
+                                    <a href="{{ url_for('components.my_listings') }}" class="btn btn-outline-primary btn-sm">Manage All</a>
+                                </div>
+                            </div>
+                            {% if my_listings %}
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light small text-muted text-uppercase">
+                                        <tr>
+                                            <th>Component</th>
+                                            <th>Category</th>
+                                            <th>Price</th>
+                                            <th>Stock</th>
+                                            <th>Status</th>
+                                            <th class="text-end">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for c in my_listings[:6] %}
+                                        <tr>
+                                            <td class="fw-bold">
+                                                <a href="{{ url_for('components.component_detail', component_id=c.id) }}" class="text-dark text-decoration-none">
+                                                    {{ c.name }}
+                                                </a>
+                                            </td>
+                                            <td><span class="badge bg-light text-dark border">{{ c.category }}</span></td>
+                                            <td class="fw-bold text-success">{{ format_currency(c.price) }}</td>
+                                            <td>{{ c.quantity }} units</td>
+                                            <td>
+                                                <span class="badge {% if c.quantity > 0 and c.status == 'Available' %}bg-success-subtle text-success border border-success-subtle{% else %}bg-danger-subtle text-danger border border-danger-subtle{% endif %}">
+                                                    {% if c.quantity <= 0 or c.status == 'Out of Stock' %}Out of Stock{% else %}{{ c.status }}{% endif %}
+                                                </span>
+                                            </td>
+                                            <td class="text-end">
+                                                <a href="{{ url_for('components.edit_component', component_id=c.id) }}" class="btn btn-sm btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-shop fs-1 d-block mb-2"></i>
+                                <p class="mb-2">You don't have any active listings yet.</p>
+                                <a href="{{ url_for('components.add_component') }}" class="btn btn-sm btn-success text-white">Sell Your First Part</a>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- TAB 3: MY SALES -->
+                        <div class="tab-pane fade" id="sales-content" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-0">Hardware Items Sold</h6>
+                                    <span class="small text-muted">Total sales: {{ format_currency(total_sales_revenue) }}</span>
+                                </div>
+                                <a href="{{ url_for('marketplace.my_sales') }}" class="btn btn-outline-primary btn-sm">Full Sales View</a>
+                            </div>
+                            {% if my_sales_items %}
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light small text-muted text-uppercase">
+                                        <tr>
+                                            <th>Order #</th>
+                                            <th>Product</th>
+                                            <th>Qty</th>
+                                            <th>Total</th>
+                                            <th>Earnings</th>
+                                            <th>Fulfillment</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for it in my_sales_items[:6] %}
+                                        <tr>
+                                            <td class="fw-bold">#{{ it.order.order_number if it.order else it.order_id }}</td>
+                                            <td>{{ it.component_name }}</td>
+                                            <td>{{ it.quantity }}</td>
+                                            <td class="fw-bold">{{ format_currency(it.subtotal) }}</td>
+                                            <td class="fw-bold text-success">{{ format_currency(it.seller_earnings) }}</td>
+                                            <td><span class="badge bg-light text-dark border">{{ it.status }}</span></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-cash-stack fs-1 d-block mb-2"></i>
+                                <p class="mb-2">No hardware sales recorded yet.</p>
+                                <a href="{{ url_for('components.my_listings') }}" class="btn btn-sm btn-outline-success">Manage Listings</a>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- TAB 4: MY INVENTORY -->
+                        <div class="tab-pane fade" id="inventory-content" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold text-dark mb-0">Personal Hardware Inventory (Available for Projects)</h6>
+                                <a href="{{ url_for('components.my_inventory') }}" class="btn btn-outline-primary btn-sm">Open Inventory</a>
+                            </div>
+                            {% if my_inventory_items %}
+                            <div class="row g-3">
+                                {% for item in my_inventory_items %}
+                                <div class="col-sm-6">
+                                    <div class="p-3 border rounded-3 bg-light d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="fw-bold mb-0 text-dark">{{ item.component.name }}</h6>
+                                            <span class="badge bg-white text-muted border small mt-1">{{ item.component.category }}</span>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge bg-success-subtle text-success fs-6 fw-bold">{{ item.quantity }} units</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-box-seam fs-1 d-block mb-2"></i>
+                                <p class="mb-2">Your personal inventory is empty.</p>
+                                <a href="{{ url_for('components.component_list') }}" class="btn btn-sm btn-outline-primary">Buy Components</a>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- TAB 5: SAVED PROJECTS -->
+                        <div class="tab-pane fade" id="saved-content" role="tabpanel">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="fw-bold text-dark mb-0">Saved DIY Projects</h6>
+                                <a href="{{ url_for('projects.saved_projects') }}" class="btn btn-outline-primary btn-sm">Full View</a>
+                            </div>
+                            {% if my_saved_projects %}
+                            <div class="list-group list-group-flush">
+                                {% for sp in my_saved_projects %}
+                                <div class="list-group-item d-flex justify-content-between align-items-center py-3 px-2 border-bottom">
+                                    <div>
+                                        <h6 class="fw-bold mb-1">
+                                            <a href="{{ url_for('projects.project_detail', project_id=sp.project.id) }}" class="text-dark text-decoration-none">
+                                                {{ sp.project.title }}
+                                            </a>
+                                        </h6>
+                                        <span class="badge bg-light text-muted border">{{ sp.project.category }}</span>
+                                        <span class="badge bg-info-subtle text-info ms-1">{{ sp.project.difficulty }}</span>
+                                    </div>
+                                    <a href="{{ url_for('projects.project_detail', project_id=sp.project.id) }}" class="btn btn-sm btn-outline-primary">View Project</a>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="text-center py-4 text-muted">
+                                <i class="bi bi-bookmark fs-1 d-block mb-2"></i>
+                                <p class="mb-2">No saved projects yet.</p>
+                                <a href="{{ url_for('projects.project_list') }}" class="btn btn-sm btn-outline-success">Browse Projects</a>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- TAB 6: SETTINGS -->
+                        <div class="tab-pane fade" id="settings-content" role="tabpanel">
+                            <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-gear me-2 text-primary"></i>Account Information</h6>
+                            <form method="POST" action="{{ url_for('auth.profile') }}">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label fw-semibold">Full Name</label>
+                                    <input type="text" class="form-control" id="name" name="name" value="{{ user.name }}" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label fw-semibold">Email Address</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                                </div>
+                                <hr class="my-4">
+                                <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-shield-lock me-2 text-secondary"></i>Change Password</h6>
+                                <div class="mb-3">
+                                    <label for="new_password" class="form-label fw-semibold">New Password (leave blank to keep current)</label>
+                                    <input type="password" class="form-control" id="new_password" name="new_password" minlength="6" placeholder="Enter new password (optional)">
+                                </div>
+                                <div class="d-flex justify-content-end pt-2">
+                                    <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                                        <i class="bi bi-check2 me-1"></i>Save Changes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

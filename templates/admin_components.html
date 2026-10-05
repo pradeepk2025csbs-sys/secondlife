@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Manage Components - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-outline-secondary btn-sm mb-2">
+                <i class="bi bi-arrow-left me-1"></i>Back to Admin
+            </a>
+            <h2 class="fw-bold mb-0">
+                <i class="bi bi-cpu text-info me-2"></i>Component Management
+            </h2>
+        </div>
+        <span class="badge bg-secondary fs-6">Total: {{ components|length }} Components</span>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Component Name</th>
+                            <th>Seller</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Stock</th>
+                            <th>Weight</th>
+                            <th>Condition</th>
+                            <th>Status</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in components %}
+                        <tr>
+                            <td class="ps-4 text-muted">#{{ c.id }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="{{ url_for('static', filename=get_component_image(c)) }}" alt="{{ c.name }}" style="width: 38px; height: 38px; object-fit: contain; border-radius: 6px; background: #f8fafc; border: 1px solid #e2e8f0; padding: 2px;" onerror="this.src='{{ url_for('static', filename='images/components/default.jpg') }}';">
+                                    <a href="{{ url_for('components.component_detail', component_id=c.id) }}" class="text-decoration-none text-dark fw-semibold">
+                                        {{ c.name }}
+                                    </a>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark border">
+                                    <i class="bi bi-person me-1"></i>{{ c.seller_name }}
+                                </span>
+                            </td>
+                            <td><span class="badge bg-light text-dark border">{{ c.category }}</span></td>
+                            <td class="fw-bold text-success" style="font-family: 'Outfit', sans-serif;">{{ format_currency(c.price) }}</td>
+                            <td class="fw-bold">{{ c.quantity }}</td>
+                            <td class="small text-muted">{{ format_weight(c.estimated_weight) }}</td>
+                            <td><span class="badge bg-info-subtle text-info-emphasis">{{ c.condition }}</span></td>
+                            <td>
+                                <span class="badge {% if c.status == 'Available' %}bg-success-subtle text-success-emphasis{% elif c.status == 'Reserved' %}bg-warning-subtle text-warning-emphasis{% else %}bg-secondary-subtle text-secondary-emphasis{% endif %}">
+                                    {{ c.status }}
+                                </span>
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="d-flex justify-content-end gap-1">
+                                    <a href="{{ url_for('admin.admin_edit_component', component_id=c.id) }}" class="btn btn-sm btn-outline-primary" title="Edit Component & Price">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('admin.admin_delete_component', component_id=c.id) }}" onsubmit="return confirm('Admin delete: are you sure?');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

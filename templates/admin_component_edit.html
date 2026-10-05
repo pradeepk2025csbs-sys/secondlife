@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Component – Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4 py-md-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Header -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+                <div>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb mb-1">
+                            <li class="breadcrumb-item"><a href="{{ url_for('admin.admin_dashboard') }}" class="text-decoration-none">Admin</a></li>
+                            <li class="breadcrumb-item"><a href="{{ url_for('admin.admin_components') }}" class="text-decoration-none">Components</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Edit #{{ component.id }}</li>
+                        </ol>
+                    </nav>
+                    <h1 class="h3 fw-bold mb-0 text-dark">
+                        Edit Component: {{ component.name }}
+                    </h1>
+                </div>
+
+                <a href="{{ url_for('admin.admin_components') }}" class="btn btn-outline-secondary btn-sm mt-2 mt-md-0">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Components
+                </a>
+            </div>
+
+            <div class="card border-0 shadow-sm" style="border-radius: 16px;">
+                <div class="card-body p-4 p-md-5">
+                    <form method="POST" action="{{ url_for('admin.admin_edit_component', component_id=component.id) }}">
+                        <div class="row g-3">
+                            <div class="col-12 text-center pb-3">
+                                <div class="mx-auto rounded-3 border p-2 bg-light d-flex align-items-center justify-content-center" style="width: 120px; height: 120px;">
+                                    <img src="{{ url_for('static', filename=get_component_image(component)) }}" alt="{{ component.name }}" style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                </div>
+                                <div class="text-muted small mt-2">Current Hardware Visual</div>
+                            </div>
+
+                            <div class="col-md-8">
+                                <label class="form-label fw-semibold small text-dark">Component Name <span class="text-danger">*</span></label>
+                                <input type="text" name="name" class="form-control" value="{{ component.name }}" required>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-dark">Price (₹) <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light fw-bold text-success">₹</span>
+                                    <input type="number" step="1" min="0" name="price" class="form-control fw-bold text-success" value="{{ component.price|int if component.price else 0 }}" required>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-dark">Available Stock (Qty) <span class="text-danger">*</span></label>
+                                <input type="number" min="0" name="quantity" class="form-control fw-bold" value="{{ component.quantity }}" required>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-dark">Category <span class="text-danger">*</span></label>
+                                <select name="category" class="form-select">
+                                    {% for cat in categories %}
+                                    <option value="{{ cat }}" {% if component.category == cat %}selected{% endif %}>{{ cat }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold small text-dark">Condition <span class="text-danger">*</span></label>
+                                <select name="condition" class="form-select">
+                                    {% for cond in conditions %}
+                                    <option value="{{ cond }}" {% if component.condition == cond %}selected{% endif %}>{{ cond }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-dark">Status</label>
+                                <select name="status" class="form-select">
+                                    {% for st in statuses %}
+                                    <option value="{{ st }}" {% if component.status == st %}selected{% endif %}>{{ st }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-dark">Owner</label>
+                                <input type="text" class="form-control bg-light" value="{{ component.owner.name if component.owner else 'Unknown' }}" readonly>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold small text-dark">Description</label>
+                                <textarea name="description" class="form-control" rows="3">{{ component.description or '' }}</textarea>
+                            </div>
+
+                            <div class="col-12 pt-3 border-top d-flex justify-content-end gap-2">
+                                <a href="{{ url_for('admin.admin_components') }}" class="btn btn-outline-secondary">Cancel</a>
+                                <button type="submit" class="btn btn-success fw-bold px-4 text-white">Save Changes</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

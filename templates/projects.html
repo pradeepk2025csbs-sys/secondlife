@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block title %}Explore Reuse Projects{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-lightbulb text-warning me-2"></i>Reuse Projects
+            </h2>
+            <p class="text-muted mb-0">Discover practical electronics projects you can build from salvaged and unused parts</p>
+        </div>
+        <div>
+            {% if session.get('user_id') %}
+            <a href="{{ url_for('dashboard.matches') }}" class="btn btn-primary">
+                <i class="bi bi-diagram-3 me-1"></i>My Smart Matches
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Search & Filter Card -->
+    <div class="card border-0 shadow-sm mb-4" style="background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(14px); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 18px;">
+        <div class="card-body p-3 p-md-4">
+            <form method="GET" action="{{ url_for('projects.project_list') }}" class="row g-3">
+                <div class="col-md-5">
+                    <label class="form-label small fw-semibold text-muted">Search Title or Keyword</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 text-success"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control border-start-0 ps-0" name="search" value="{{ search }}" placeholder="e.g. Robot, Dustbin, Weather...">
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <label class="form-label small fw-semibold text-muted">Category</label>
+                    <select class="form-select" name="category">
+                        <option value="">All Categories</option>
+                        {% for cat in categories %}
+                        <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-md-2">
+                    <label class="form-label small fw-semibold text-muted">Difficulty</label>
+                    <select class="form-select" name="difficulty">
+                        <option value="">All Difficulties</option>
+                        {% for diff in difficulties %}
+                        <option value="{{ diff }}" {% if difficulty == diff %}selected{% endif %}>{{ diff }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12 col-md-2 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel me-1"></i>Filter
+                    </button>
+                    <a href="{{ url_for('projects.project_list') }}" class="btn btn-outline-secondary" title="Reset Filters">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Projects Grid -->
+    {% if projects %}
+    <div class="row g-4">
+        {% for project in projects %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 card-hover card-3d-tilt bg-white d-flex flex-column border-0 shadow-sm" style="border-radius: 18px; border: 1px solid rgba(226, 232, 240, 0.85); overflow: hidden;">
+                <div class="position-relative" style="height: 205px; overflow: hidden; background-color: #0f172a;">
+                    <img src="{{ url_for('static', filename=get_project_image(project)) }}" class="card-img-top w-100 h-100" style="object-fit: cover; transition: transform 0.4s ease;" alt="{{ project.title }}" onerror="this.src='{{ url_for('static', filename='images/projects/default.jpg') }}';">
+                    <span class="badge position-absolute top-0 start-0 m-3 px-2 py-1 bg-dark bg-opacity-75 backdrop-blur text-white border border-light border-opacity-25 small shadow-sm">
+                        {% if project.category == 'IoT' %}<i class="bi bi-wifi text-info me-1"></i>
+                        {% elif project.category == 'Robotics' %}<i class="bi bi-robot text-danger me-1"></i>
+                        {% elif project.category == 'Automation' %}<i class="bi bi-gear-wide-connected text-success me-1"></i>
+                        {% elif project.category == 'Smart Home' %}<i class="bi bi-house-gear text-primary me-1"></i>
+                        {% elif project.category == 'Education' %}<i class="bi bi-mortarboard text-warning me-1"></i>
+                        {% else %}<i class="bi bi-lightbulb text-warning me-1"></i>{% endif %}
+                        {{ project.category }}
+                    </span>
+                </div>
+
+
+                <div class="card-body d-flex flex-column p-3 p-md-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="badge bg-light text-muted border small">
+                            <i class="bi bi-tag me-1"></i>{{ project.category }}
+                        </span>
+                        <span class="badge {% if project.difficulty == 'Beginner' %}bg-success-subtle text-success-emphasis border border-success-subtle{% elif project.difficulty == 'Intermediate' %}bg-warning-subtle text-warning-emphasis border border-warning-subtle{% else %}bg-danger-subtle text-danger-emphasis border border-danger-subtle{% endif %} px-2 py-1">
+                            <i class="bi bi-speedometer2 me-1"></i>{{ project.difficulty }}
+                        </span>
+                    </div>
+
+                    <h5 class="card-title fw-bold mb-2">
+                        <a href="{{ url_for('projects.project_detail', project_id=project.id) }}" class="text-decoration-none text-dark">
+                            {{ project.title }}
+                        </a>
+                    </h5>
+
+                    <p class="text-muted small mb-3" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;min-height:56px;line-height:1.6;">
+                        {{ project.description }}
+                    </p>
+
+                    <!-- Required Component Information -->
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center justify-content-between small text-muted mb-1">
+                            <span class="fw-semibold"><i class="bi bi-tools text-primary me-1"></i>Components Needed:</span>
+                            <span class="badge bg-light text-dark border">{{ project.required_components|length }} parts</span>
+                        </div>
+                        {% if project.required_components %}
+                        <div class="d-flex flex-wrap gap-1 mt-1">
+                            {% for req in project.required_components[:3] %}
+                            <span class="badge bg-light text-secondary border small fw-normal">{{ req.component_name }}</span>
+                            {% endfor %}
+                            {% if project.required_components|length > 3 %}
+                            <span class="badge bg-light text-muted border small fw-normal">+{{ project.required_components|length - 3 }} more</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Feasibility Bar (if user is logged in) -->
+                    {% if session.get('user_id') and project.id in project_scores %}
+                    {% set score = project_scores[project.id] %}
+                    <div class="mb-3 p-2 bg-light rounded-3 border border-light">
+                        <div class="d-flex justify-content-between align-items-center small mb-1">
+                            <span class="fw-semibold text-muted"><i class="bi bi-cpu me-1 text-success"></i>Compatibility</span>
+                            <span class="fw-bold {% if score >= 80 %}text-success{% elif score >= 50 %}text-warning{% elif score > 0 %}text-danger{% else %}text-muted{% endif %}">
+                                {{ score }}%
+                            </span>
+                        </div>
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar {% if score >= 80 %}bg-success{% elif score >= 50 %}bg-warning{% elif score > 0 %}bg-danger{% else %}bg-secondary{% endif %}"
+                                 role="progressbar" style="width: {{ score }}%"></div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="mt-auto pt-3 border-top">
+                        <div class="d-flex justify-content-between small text-muted mb-3">
+                            <span><i class="bi bi-clock-history me-1"></i>{{ project.category }}</span>
+                            <span class="fw-semibold text-success"><i class="bi bi-leaf me-1"></i>{{ format_weight(project.estimated_waste_reduction) }}</span>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <a href="{{ url_for('projects.project_detail', project_id=project.id) }}" class="btn btn-primary btn-sm flex-grow-1 d-inline-flex align-items-center justify-content-center">
+                                <i class="bi bi-eye me-1"></i>View Project
+                            </a>
+                            {% if session.get('user_id') %}
+                            <form method="POST" action="{{ url_for('projects.save_project', project_id=project.id) }}">
+                                <button type="submit" class="btn btn-outline-secondary btn-sm" title="Save Project">
+                                    <i class="bi bi-bookmark"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card border-0 shadow-sm py-5 text-center" style="border-radius: 18px;">
+        <div class="card-body">
+            <i class="bi bi-search text-muted" style="font-size: 3.5rem;"></i>
+            <h4 class="fw-bold mt-3">No Projects Found</h4>
+            <p class="text-muted">Try clearing or adjusting your search filters.</p>
+            <a href="{{ url_for('projects.project_list') }}" class="btn btn-outline-primary btn-sm">
+                Clear Filters
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
